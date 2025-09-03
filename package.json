@@ -16,6 +16,9 @@
     "recharts": "2.10.3"
   },
   "devDependencies": {
+    "@types/node": "^20.11.28",
+    "@types/react": "^18.2.42",
+    "@types/react-dom": "^18.2.17",
     "autoprefixer": "10.4.16",
     "postcss": "8.4.31",
     "eslint": "8.54.0",
