@@ -3,24 +3,7 @@
 import { useState } from "react";
 import Papa from "papaparse";
 import Dashboard from "@/components/Dashboard";
-
-// Shared types
-export type Row = {
-  Date: Date;
-  Merchant: string;
-  Category: string;
-  Amount: number;
-  Account: string;
-};
-
-export type RawCSVRow = {
-  Date: string;
-  Merchant?: string;
-  Category?: string;
-  Amount: string | number;
-  Account?: string;
-  [key: string]: any;
-};
+import { Row, RawCSVRow } from "@/types";
 
 export default function Page() {
   const [rows, setRows] = useState<Row[] | null>(null);
