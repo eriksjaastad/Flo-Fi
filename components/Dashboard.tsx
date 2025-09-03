@@ -172,7 +172,7 @@ export default function Dashboard({ rows }: { rows: Row[] }) {
         <h2 className="text-xl font-semibold mb-3">Large Purchases & Timing</h2>
         <div className="grid md:grid-cols-2 gap-6">
           <div className="h-56">
-            <h3 className="mb-1 opacity-80">Count of > $1,000 by Month</h3>
+            <h3 className="mb-1 opacity-80">Count of &gt; $1,000 by Month</h3>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={spikes}>
                 <XAxis dataKey="Month" />
