@@ -1,4 +1,6 @@
 
+import "./globals.css";
+
 export const metadata = {
   title: "Monarch Dashboard (Local CSV)",
   description: "Upload your Monarch CSV and get fun, psychology-aware finance charts."

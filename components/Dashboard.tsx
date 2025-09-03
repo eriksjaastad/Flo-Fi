@@ -4,14 +4,7 @@ import { useMemo } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ReferenceLine
 } from "recharts";
-
-type Row = {
-  Date: Date;
-  Merchant: string;
-  Category: string;
-  Amount: number;
-  Account: string;
-};
+import { Row } from "@/app/page";
 
 const COLORS = ["#60a5fa","#34d399","#fbbf24","#f472b6","#c084fc","#f87171","#a3e635","#22d3ee"];
 
@@ -125,31 +118,62 @@ export default function Dashboard({ rows }: { rows: Row[] }) {
     <div className="grid gap-6">
       <section className="rounded-2xl bg-[var(--card)] p-6">
         <h2 className="text-xl font-semibold mb-3">Monthly Income vs. Spend</h2>
-        <div className="h-64">
+        <div className="h-64" role="img" aria-label={`Chart showing monthly income vs spending over ${monthly.length} months`}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={monthly}>
+            <BarChart data={monthly} aria-label="Monthly income vs spending chart">
               <XAxis dataKey="Month" />
               <YAxis />
-              <Tooltip />
-              <Bar dataKey="income" stackId="a" fill="#34d399" />
-              <Bar dataKey="spend" stackId="a" fill="#f87171" />
+              <Tooltip 
+                formatter={(value, name) => [`$${Number(value).toFixed(2)}`, name === 'income' ? 'Income' : 'Spending']}
+                labelFormatter={(label) => `Month: ${label}`}
+              />
+              <Bar dataKey="income" stackId="a" fill="#34d399" name="Income" />
+              <Bar dataKey="spend" stackId="a" fill="#f87171" name="Spending" />
               <ReferenceLine y={0} stroke="#fff" />
             </BarChart>
           </ResponsiveContainer>
+        </div>
+        <div className="mt-2 text-sm opacity-80">
+          <span className="inline-flex items-center mr-4">
+            <span className="w-3 h-3 bg-green-400 rounded mr-2" aria-hidden="true"></span>
+            Income
+          </span>
+          <span className="inline-flex items-center">
+            <span className="w-3 h-3 bg-red-400 rounded mr-2" aria-hidden="true"></span>
+            Spending
+          </span>
         </div>
       </section>
 
       <section className="rounded-2xl bg-[var(--card)] p-6">
         <h2 className="text-xl font-semibold mb-3">Your 4-Card Categories</h2>
-        <div className="h-64">
+        <div className="h-64" role="img" aria-label={`Pie chart showing spending by category across ${byCard.length} categories`}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie data={byCard} dataKey="value" nameKey="name" outerRadius={120}>
+              <Pie 
+                data={byCard} 
+                dataKey="value" 
+                nameKey="name" 
+                outerRadius={120}
+                aria-label="Category spending breakdown"
+              >
                 {byCard.map((entry, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
               </Pie>
-              <Tooltip />
+              <Tooltip formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Amount']} />
             </PieChart>
           </ResponsiveContainer>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+          {byCard.map((entry, i) => (
+            <div key={entry.name} className="flex items-center">
+              <span 
+                className="w-3 h-3 rounded mr-2" 
+                style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                aria-hidden="true"
+              ></span>
+              <span>{entry.name}: ${entry.value.toFixed(2)}</span>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -183,7 +207,7 @@ export default function Dashboard({ rows }: { rows: Row[] }) {
             </ResponsiveContainer>
           </div>
           <div className="h-56">
-            <h3 className="mb-1 opacity-80">Day-of-Month (>$500)</h3>
+            <h3 className="mb-1 opacity-80">Day-of-Month (&gt;$500)</h3>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dayPattern}>
                 <XAxis dataKey="day" />
