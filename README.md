@@ -1,4 +1,29 @@
 
+<!-- SCAFFOLD:START - Do not edit between markers -->
+# flo-fi
+
+Brief description of the project's purpose
+
+## Quick Start
+
+```bash
+# Setup
+pip install -r requirements.txt
+
+# Run
+python main.py
+```
+
+## Documentation
+
+See the `Documents/` directory for detailed documentation.
+
+## Status
+
+- **Current Phase:** Foundation
+- **Status:** #status/active
+
+<!-- SCAFFOLD:END - Custom content below is preserved -->
 # Monarch Dashboard (Local CSV, Vercel-friendly)
 
 A tiny Next.js dashboard that parses your Monarch CSV **in the browser** (no server, no credentials) and renders:

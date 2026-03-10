@@ -1,3 +1,35 @@
+
+<!-- SCAFFOLD:START - Do not edit between markers -->
+# Virtual environments
+venv/
+env/
+.venv/
+node_modules/
+
+# Data and caches
+data/
+*.db
+*.sqlite
+__pycache__/
+.pytest_cache/
+.coverage
+
+# Environment and secrets
+.env
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+
+<!-- SCAFFOLD:END - Custom content below is preserved -->
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
