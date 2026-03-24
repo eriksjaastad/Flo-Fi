@@ -50,3 +50,14 @@ A tiny Next.js dashboard that parses your Monarch CSV **in the browser** (no ser
 ## Customize category mapping
 
 Edit `components/Dashboard.tsx` → `CARD_MAP` to tweak merchant-to-card assignments.
+## CI / Automated Code Review
+
+Pull requests are automatically reviewed by Claude Sonnet via a [centralized reusable workflow](https://github.com/eriksjaastad/tools/blob/main/.github/workflows/claude-review-reusable.yml) hosted in the `tools` repo.
+
+**On every PR:**
+- Tests run (if any exist)
+- AI reviews the diff against project standards and governance protocol
+- Posts a sticky review comment and a `claude-review` commit status
+- Auto-merges on APPROVE, blocks on REQUEST_CHANGES
+
+See [tools repo](https://github.com/eriksjaastad/tools) for configuration details.
