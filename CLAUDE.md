@@ -6,17 +6,19 @@
 
 # flo-fi
 
-> Brief description of the project's purpose
+> Personal finance dashboard
 
 ## Tech Stack
 
-- **Language:** Python
-- **Frameworks:** None
+- **Language:** TypeScript
+- **Framework:** Next.js
+- **Styling:** Tailwind CSS
 
 ## Commands
 
-- **Run:** `python main.py`
-- **Test:** `pytest`
+- **Dev:** `npm run dev`
+- **Build:** `npm run build`
+- **Lint:** `npm run lint`
 
 # Workflow
 
