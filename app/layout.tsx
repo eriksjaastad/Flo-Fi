@@ -2,8 +2,8 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Monarch Dashboard (Local CSV)",
-  description: "Upload your Monarch CSV and get fun, psychology-aware finance charts."
+  title: "Flo-Fi",
+  description: "AI-generated anime characters and original content."
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
