@@ -1,0 +1,34 @@
+# Flo-Fi – Base Configuration
+
+paths:
+  local_output: "./output"
+  local_jobs: "./data/jobs"
+  local_working: "./data/working"
+  pod_workspace: "/workspace/flo-fi"
+  pod_output: "/workspace/flo-fi/output"
+
+r2:
+  bucket: "pose-factory"
+  prefix: "flo-fi"
+  remote_name: "r2_flo_fi"
+
+comfyui:
+  local:
+    host: "127.0.0.1"
+    port: 8188
+    install_dir: "./tools/ComfyUI"
+  pod:
+    host: "127.0.0.1"
+    port: 8188
+    install_dir: "/workspace/ComfyUI"
+
+models:
+  checkpoint: "noobaiXLVpredv10_v10.safetensors"
+  controlnet_depth: "controlnet-depth-sdxl-fp16.safetensors"
+  controlnet_canny: "controlnet-canny-sdxl-fp16.safetensors"
+
+generation:
+  default_resolution: [1024, 1024]
+  default_steps: 28
+  default_cfg: 7.0
+  default_sampler: "euler_ancestral"
