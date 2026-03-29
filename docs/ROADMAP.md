@@ -1,39 +1,49 @@
 # Flo-Fi Roadmap
 
-## Phase 1 — Toolchain Setup
+## Core Constraint: Fully Agentic
 
-Get the creation pipeline working end-to-end before making anything real.
+**Every step in the pipeline must be 100% agentic.** Zero human interaction with creation tools. No GUIs. Everything runs via CLI, API, or headless scripts. An agent writes the prompts, submits jobs, reviews output, and posts to social media.
 
-| Task | Description |
-|------|-------------|
-| Install VRoid Studio | Download, install, familiarize with character creation sliders |
-| Set up ComfyUI + NoobAI-XL | Local Stable Diffusion setup with anime-optimized model |
-| Install ControlNet models | Depth + Canny models for the hybrid 3D-to-AI pipeline |
-| Blender anime shader setup | Install VRM Importer addon, configure toon/cel shading |
-| End-to-end pipeline test | VRoid -> Blender render -> ComfyUI stylization. One throwaway character, prove the pipeline works |
-| Create social accounts | Twitter/X, TikTok, Instagram — consistent Flo-Fi branding, bio, placeholder avatar |
-| X Premium subscription | Required for organic reach on Twitter/X (~$8/mo) |
+---
 
-**Milestone:** One AI-stylized character image produced through the full pipeline.
+## Phase 1 — Toolchain Setup (COMPLETE)
+
+Get the creation pipeline working end-to-end.
+
+| Task | Status |
+|------|--------|
+| ~~Install VRoid Studio~~ | **Cancelled** — GUI tool, violates agentic constraint |
+| Set up ComfyUI + NoobAI-XL | **Done** — MPS backend, 24GB VRAM, PyTorch 2.11 |
+| Install ControlNet models | **Done** — Depth + canny (4.3GB) |
+| Blender anime shader setup | **Done** — VRM Importer + LSCherry toon shader |
+| End-to-end pipeline test | **Done** — First anime image generated via API |
+| Create Doppler project | **Done** — R2 credentials stored |
+| Copy 3d-pose-factory infra | **Done** — Mission Control, setup_pod.sh, cost calculator |
+| Create social accounts | **Pending** — Requires Erik (browser + CAPTCHAs) |
+| X Premium subscription | **Pending** — Requires Erik (payment) |
+
+**Milestone:** One AI-stylized character image produced through the fully agentic pipeline. **ACHIEVED.**
 
 ---
 
 ## Phase 2 — First Characters
 
-Create the founding cast. These are the faces of the brand.
+Create the founding cast. All character design is agentic — agents craft prompts, generate variations, select best outputs, and iterate.
 
 | Task | Description |
 |------|-------------|
-| Design Character 1 | First named character — define personality, look, signature outfit. VRoid base model + AI renders |
-| Design Character 2 | Second character — contrasting personality/aesthetic to Character 1 |
-| Design Character 3 | Third character — rounds out the initial cast |
-| Train character LoRA | Train a style LoRA on the best outputs for visual consistency (~$2-3 compute) |
-| Produce hero images | 10-15 high-quality images across all 3 characters. Mix of poses, settings, moods |
-| Character sheets | Expression sheets + outfit variations for each character |
-| Define brand color palette | Lock in the palette based on what actually looks good in the outputs |
-| Design logo/wordmark | Simple, works at avatar size, consistent across platforms |
+| Style exploration | Agent batch-generates with different prompt strategies, samplers, CFG values to find "the Flo-Fi look" |
+| Define the Flo-Fi style | Lock in the prompt template, negative prompt, and generation parameters that produce our signature aesthetic |
+| Design Character 1 | First named character — personality doc + 5-10 hero images via ComfyUI API |
+| Design Character 2 | Second character — contrasting aesthetic |
+| Design Character 3 | Third character — rounds out the cast |
+| Train character LoRA | Train a style LoRA on best outputs for visual consistency |
+| Produce hero images | 10-15 high-quality images across all 3 characters |
+| Character sheets | Expression/outfit variations generated via prompt engineering |
+| Define brand color palette | Extract from the best outputs |
+| Design logo/wordmark | Agent-generated via ComfyUI or text-to-image |
 
-**Milestone:** 3 named characters with 15+ production-quality images and a locked visual identity.
+**Milestone:** 3 named characters with 15+ production-quality images and a locked visual identity. All generated agentically.
 
 ---
 
@@ -43,7 +53,7 @@ Launch day. All platforms go live simultaneously.
 
 | Task | Description |
 |------|-------------|
-| Set up Buffer/scheduling | Cross-posting tool for managing 5 platforms |
+| Set up Buffer/scheduling | Cross-posting tool for managing 5 platforms (agent-operable via API) |
 | Prepare launch batch | 2-3 posts per platform, scheduled for optimal times |
 | Write platform bios | Final bios with consistent voice across all accounts |
 | Update social avatars | Logo/character avatar on all platforms |
@@ -70,7 +80,7 @@ Sustain, iterate, expand. This phase is ongoing.
 | Engagement strategy | Reply to comments, engage with other anime accounts, join conversations |
 | Analytics review | Weekly check on what's performing. Double down on winners |
 | Expand character roster | New characters based on audience response |
-| Explore animation | Live2D or short AI-generated animation loops for TikTok/Reels |
+| Explore animation | AI-generated animation loops for TikTok/Reels (must be agentic) |
 | Monetization exploration | When audience hits critical mass — merch, prints, Patreon |
 
 **Milestone:** Consistent posting cadence with growing follower counts across platforms.
@@ -79,8 +89,10 @@ Sustain, iterate, expand. This phase is ongoing.
 
 ## Open Questions (Revisit as we go)
 
+- What is "the Flo-Fi style"? — Needs style exploration (Phase 2, first task)
 - Do characters have connected lore / a shared universe?
-- What's the posting cadence sweet spot for our capacity?
+- What's the posting cadence sweet spot for agentic capacity?
 - When do we invest in animation (Phase 4 or later)?
 - At what follower count does monetization make sense?
 - Do we want a Flo-Fi website/portfolio eventually?
+- Can social media posting be fully agentic? (Buffer API, Twitter API, etc.)
