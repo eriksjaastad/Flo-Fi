@@ -143,7 +143,7 @@ class MissionControl:
             "steps": args.steps or 28,
             "cfg_scale": args.cfg or 7.0,
             "sampler": "euler_ancestral",
-            "checkpoint": "noobaiXLVpredv10_v10.safetensors",
+            "checkpoint": "NoobAI-XL-Vpred-v1.0.safetensors",
             "count": args.count or 1,
         }
 
@@ -184,7 +184,7 @@ class MissionControl:
                 },
                 "4": {
                     "class_type": "CheckpointLoaderSimple",
-                    "inputs": {"ckpt_name": "noobaiXLVpredv10_v10.safetensors"},
+                    "inputs": {"ckpt_name": "NoobAI-XL-Vpred-v1.0.safetensors"},
                 },
                 "5": {
                     "class_type": "EmptyLatentImage",

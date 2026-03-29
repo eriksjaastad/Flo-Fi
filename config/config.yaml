@@ -23,7 +23,7 @@ comfyui:
     install_dir: "/workspace/ComfyUI"
 
 models:
-  checkpoint: "noobaiXLVpredv10_v10.safetensors"
+  checkpoint: "NoobAI-XL-Vpred-v1.0.safetensors"
   controlnet_depth: "controlnet-depth-sdxl-fp16.safetensors"
   controlnet_canny: "controlnet-canny-sdxl-fp16.safetensors"
 
