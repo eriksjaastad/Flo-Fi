@@ -1,0 +1,38 @@
+# Cost Configuration for Flo-Fi Generation Pipeline
+# Last updated: 2026-03-28
+
+providers:
+  # Local generation on M4 Pro MacBook (MPS backend)
+  local_mac:
+    name: "M4 Pro Local (ComfyUI + MPS)"
+    api_cost: 0.0
+    gpu_cost_per_hr: 0.0  # Electricity only
+    avg_render_time_sec: 45  # SDXL on M4 Pro with MPS
+    description: "Free, no content filters, ~45s per 1024x1024 image"
+
+  # RunPod GPU (A40 or similar)
+  runpod_a40:
+    name: "RunPod A40 (ComfyUI + CUDA)"
+    api_cost: 0.0
+    gpu_cost_per_hr: 0.39
+    avg_render_time_sec: 8  # SDXL on A40
+    description: "Fast batch generation, ~8s per image, $0.39/hr"
+
+  # Stability AI API (for comparison / fallback)
+  stability:
+    name: "Stability AI API"
+    base_cost: 0.002
+    models:
+      sdxl:
+        name: "SDXL"
+        cost_multiplier: 2.0
+    resolution_multipliers:
+      1024x1024: 4.0
+    steps_cost_per_step: 0.00001
+    description: "Cloud API, content-filtered, ~$0.04 per 1024x1024"
+
+# Safety limits
+limits:
+  max_cost_per_job: 50.0
+  warning_threshold: 20.0
+  max_batch_size: 500
