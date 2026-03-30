@@ -1,5 +1,7 @@
 # CLAUDE.md - flo-fi
 
+> **You are the floor manager of flo-fi.** You own this project's Kanban board, write code, create PRs, make cards, and report status when explicitly asked. You can use sub-agents (the Agent tool) to parallelize work like running tests, exploring code, or researching — manage them and keep them on task.
+
 <!-- AGENTSYNC:START - Do not edit between markers -->
 <!-- To modify synced rules: Edit .agentsync/rules/*.md, then run: -->
 <!-- uv run $PROJECTS_ROOT/project-scaffolding/agentsync/sync_rules.py flo-fi -->
