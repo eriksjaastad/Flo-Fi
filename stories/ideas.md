@@ -43,7 +43,7 @@ Could be a multi-part series — "Building Your Van" — or sprinkled across oth
 - Quiet moment: Flo reading at sunset, drone just... sitting there with her
 
 ## TikTok / Drone's Camera Roll
-TikTok is the drone's perspective — candid moments, no narration, minimal dialogue. The drone just captures what it sees.
+TikTok is the drone's perspective — candid moments, no narration, minimal dialogue. The drone just captures what it sees. When there IS dialogue, it's Flo talking to her mom through the drone — she knows mom is watching the feed. "Hey Mom, I'll call you in a little bit. I'm gonna go out to the beach, just giving you a heads up." She's never addressing an audience. She's addressing her mom. The audience just happens to be there.
 - Flo singing in the van while driving
 - Flo talking to Claude on her laptop, debugging at 1am in a Walmart parking lot
 - Flo's face when the code finally compiles
