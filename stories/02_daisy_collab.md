@@ -13,9 +13,10 @@ Somewhere in the Southwest. Daisy pulls up, Flo's drone buzzes around being nosy
 - Shows respect for the creator who inspired us
 
 ## The Setup
-1. First video credits Daisy's creator as inspiration — honest, generous, opens the door
-2. After first video drops, reach out to Daisy's creator: show them Flo, show them the pipeline, pitch the collab
-3. Worst case: they say no. Best case: biggest video for both channels.
+1. Early on (after some following), Flo shows her mom a TikTok through the drone — holds up her phone and says something like "Mom, look at this girl I found, she does this AI character thing, she seems super cool. I hope I get to meet her someday." That's the seed. No pitch, no "go follow her." Just Flo being a fan.
+2. Daisy's creator sees it, feels genuinely flattered. Door is wide open.
+3. Months later, the actual collab happens. The audience remembers the moment Flo showed her mom that TikTok — and now it's paying off.
+4. Reach out to Daisy's creator after Flo has 20+ posts and some traction. Show them the pipeline, pitch the collab from "look what we built" not "we're new, help us."
 
 ## Technical Approach
 - Grok Aurora multi-image API can stitch characters together in the same scene
