@@ -277,10 +277,10 @@ class MissionControl:
         negative = args.negative or FLO_NEGATIVE
         steps = args.steps or 30
         cfg = args.cfg or 5.5
-        sampler_name = "dpmpp_2m"
-        scheduler = "karras"
-        width = 832
-        height = 1216
+        sampler_name = getattr(args, 'sampler', None) or "dpmpp_2m"
+        scheduler = "normal" if sampler_name == "euler_ancestral" else "karras"
+        width = getattr(args, 'width', None) or 832
+        height = getattr(args, 'height', None) or 1216
         seed = args.seed or int(time.time())
         filename_prefix = args.prefix or "flofi"
         checkpoint = getattr(args, 'model', None) or "Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors"
@@ -399,50 +399,62 @@ class MissionControl:
             },
         }
 
-        workflow = {"prompt": workflow_nodes}
-
         host = args.host or "127.0.0.1"
         port = args.port or 8188
+        count = getattr(args, 'count', 1) or 1
 
-        data = json.dumps(workflow).encode("utf-8")
-        req = urllib.request.Request(
-            f"http://{host}:{port}/prompt",
-            data=data,
-            headers={"Content-Type": "application/json"},
-        )
+        for i in range(count):
+            current_seed = seed + i if count > 1 else seed
+            current_prefix = f"{filename_prefix}_{i}" if count > 1 else filename_prefix
 
-        try:
-            resp = urllib.request.urlopen(req)
-            result = json.loads(resp.read())
-            prompt_id = result.get("prompt_id", "unknown")
-            print(f"Generation queued: {prompt_id}")
-            print(f"Output will appear in tools/ComfyUI/output/{filename_prefix}_*.png")
+            # Update seed and prefix in workflow
+            workflow_nodes["3"]["inputs"]["seed"] = current_seed
+            workflow_nodes["9"]["inputs"]["filename_prefix"] = current_prefix
 
-            log_entry = {
-                "prompt_id": prompt_id,
-                "target": "local",
-                "filename_prefix": filename_prefix,
-                "prompt": prompt_text,
-                "negative_prompt": negative,
-                "checkpoint": checkpoint,
-                "sampler": sampler_name,
-                "scheduler": scheduler,
-                "steps": steps,
-                "cfg": cfg,
-                "seed": seed,
-                "resolution": [width, height],
-            }
-            if lora_name:
-                log_entry["lora"] = lora_name
-                log_entry["lora_strength"] = lora_strength
-            if ipa_image:
-                log_entry["ipadapter_image"] = ipa_image
-                log_entry["ipadapter_strength"] = ipa_strength
-            self.log_generation(log_entry)
+            workflow = {"prompt": workflow_nodes}
+            data = json.dumps(workflow).encode("utf-8")
+            req = urllib.request.Request(
+                f"http://{host}:{port}/prompt",
+                data=data,
+                headers={"Content-Type": "application/json"},
+            )
 
-        except Exception as e:
-            print(f"Error connecting to ComfyUI at {host}:{port}: {e}")
-            print("Make sure ComfyUI is running: ./shared/scripts/start_comfyui.sh")
+            try:
+                resp = urllib.request.urlopen(req)
+                result = json.loads(resp.read())
+                prompt_id = result.get("prompt_id", "unknown")
+                if count > 1:
+                    print(f"[{i+1}/{count}] Queued: {prompt_id} (seed: {current_seed})")
+                else:
+                    print(f"Generation queued: {prompt_id}")
+                print(f"Output will appear in tools/ComfyUI/output/{current_prefix}_*.png")
+
+                log_entry = {
+                    "prompt_id": prompt_id,
+                    "target": "local",
+                    "filename_prefix": current_prefix,
+                    "prompt": prompt_text,
+                    "negative_prompt": negative,
+                    "checkpoint": checkpoint,
+                    "sampler": sampler_name,
+                    "scheduler": scheduler,
+                    "steps": steps,
+                    "cfg": cfg,
+                    "seed": current_seed,
+                    "resolution": [width, height],
+                }
+                if lora_name:
+                    log_entry["lora"] = lora_name
+                    log_entry["lora_strength"] = lora_strength
+                if ipa_image:
+                    log_entry["ipadapter_image"] = ipa_image
+                    log_entry["ipadapter_strength"] = ipa_strength
+                self.log_generation(log_entry)
+
+            except Exception as e:
+                print(f"Error connecting to ComfyUI at {host}:{port}: {e}")
+                print("Make sure ComfyUI is running: ./shared/scripts/start_comfyui.sh")
+                break
 
     def cmd_setup_pod(self, args):
         """Upload setup scripts to R2 for pod bootstrap"""
@@ -512,6 +524,10 @@ def main():
     local_parser.add_argument("--steps", type=int, help="Sampling steps (default: 30)")
     local_parser.add_argument("--cfg", type=float, help="CFG scale (default: 5.5)")
     local_parser.add_argument("--seed", type=int, help="RNG seed (default: current timestamp)")
+    local_parser.add_argument("--sampler", help="Sampler name (default: dpmpp_2m). Options: euler_ancestral, dpmpp_2m, dpmpp_sde, etc.")
+    local_parser.add_argument("--width", type=int, help="Image width (default: 832)")
+    local_parser.add_argument("--height", type=int, help="Image height (default: 1216)")
+    local_parser.add_argument("--count", type=int, default=1, help="Number of images to generate with different seeds (default: 1)")
     local_parser.add_argument("--prefix", help="Filename prefix (default: flofi)")
     local_parser.add_argument("--host", default="127.0.0.1", help="ComfyUI host")
     local_parser.add_argument("--port", type=int, default=8188, help="ComfyUI port")

@@ -1,0 +1,25 @@
+[
+  {
+    "id": "flo-training",
+    "type": "local",
+    "instance_data_dir": "tools/ComfyUI/training/flo",
+    "crop": true,
+    "crop_style": "random",
+    "crop_aspect": "square",
+    "minimum_image_size": 256,
+    "maximum_image_size": 1024,
+    "target_downsample_size": 1024,
+    "resolution": 1024,
+    "resolution_type": "pixel_area",
+    "caption_strategy": "instanceprompt",
+    "instance_prompt": "flo_character",
+    "cache_dir_vae": "cache/vae/sdxl/flo-training"
+  },
+  {
+    "id": "text-embed-cache",
+    "dataset_type": "text_embeds",
+    "default": true,
+    "type": "local",
+    "cache_dir": "cache/text/sdxl"
+  }
+]
