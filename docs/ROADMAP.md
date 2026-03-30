@@ -12,87 +12,94 @@ Get the creation pipeline working end-to-end.
 
 | Task | Status |
 |------|--------|
-| ~~Install VRoid Studio~~ | **Cancelled** — GUI tool, violates agentic constraint |
-| Set up ComfyUI + NoobAI-XL | **Done** — MPS backend, 24GB VRAM, PyTorch 2.11 |
+| Set up ComfyUI + models | **Done** — MPS backend, M4 Pro, PyTorch 2.11 |
 | Install ControlNet models | **Done** — Depth + canny (4.3GB) |
-| Blender anime shader setup | **Done** — VRM Importer + LSCherry toon shader |
-| End-to-end pipeline test | **Done** — First anime image generated via API |
+| End-to-end pipeline test | **Done** — First image generated via API |
 | Create Doppler project | **Done** — R2 credentials stored |
-| Copy 3d-pose-factory infra | **Done** — Mission Control, setup_pod.sh, cost calculator |
+| Copy 3d-pose-factory infra | **Done** — Mission Control, setup_pod.sh |
 | Create social accounts | **Pending** — Requires Erik (browser + CAPTCHAs) |
-| X Premium subscription | **Pending** — Requires Erik (payment) |
 
 **Milestone:** One AI-stylized character image produced through the fully agentic pipeline. **ACHIEVED.**
 
 ---
 
-## Phase 2 — First Characters
+## Phase 2 — Flo (IN PROGRESS)
 
-Create the founding cast. All character design is agentic — agents craft prompts, generate variations, select best outputs, and iterate.
+Create and lock Flo's character. All design is agentic — agents craft prompts, generate variations, and iterate.
 
-| Task | Description |
-|------|-------------|
-| Style exploration | Agent batch-generates with different prompt strategies, samplers, CFG values to find "the Flo-Fi look" |
-| Define the Flo-Fi style | Lock in the prompt template, negative prompt, and generation parameters that produce our signature aesthetic |
-| Design Character 1 | First named character — personality doc + 5-10 hero images via ComfyUI API |
-| Design Character 2 | Second character — contrasting aesthetic |
-| Design Character 3 | Third character — rounds out the cast |
-| Train character LoRA | Train a style LoRA on best outputs for visual consistency |
-| Produce hero images | 10-15 high-quality images across all 3 characters |
-| Character sheets | Expression/outfit variations generated via prompt engineering |
-| Define brand color palette | Extract from the best outputs |
-| Design logo/wordmark | Agent-generated via ComfyUI or text-to-image |
+| Task | Status |
+|------|--------|
+| Style exploration | **Done** — Found RealCartoon-Pony V3 as the right model |
+| Define the Flo-Fi style | **In progress** — v20_04 is baseline, needs fresh-eyes confirmation |
+| Character bible | **Done** — Flo's personality, backstory, drone companion locked |
+| Scene presets | **Done** — 7 scenes in `--scene` flag (#5432) |
+| Train Flo LoRA | **In progress** — SimpleTuner installed, need 20-30 training images (#5400) |
+| Produce hero images | Blocked on LoRA training |
+| Character sheets | Blocked on face lock |
+| Design Characters 2 & 3 | Backlog |
+| Define brand color palette | Backlog |
+| Design logo/wordmark | Backlog |
 
-**Milestone:** 3 named characters with 15+ production-quality images and a locked visual identity. All generated agentically.
+**Key style findings:**
+- Target: 3D character illustration / semi-realistic anime 3D (NOT Pixar)
+- RealCartoon-Pony V3 nails this aesthetic out of the box
+- Juggernaut-XL = photorealistic soul, wrong style. Pixar LoRAs = wrong category entirely.
+- IPAdapter fights with RealCartoon-Pony; custom LoRA is the real consistency solution
+
+**Milestone:** Flo's face locked, LoRA trained, 15+ hero images across scenes.
 
 ---
 
-## Phase 3 — First Content Drop
+## Phase 3 — Content Pipeline + Launch
 
-Launch day. All platforms go live simultaneously.
+Build the fully agentic video pipeline and launch on social media.
+
+### Video Pipeline (all API-driven)
+
+| Step | Tool | API | Cost | Card |
+|------|------|-----|------|------|
+| Images → video | Grok Aurora | Multi-image storyboard, up to 7 images → 15sec video | $0.05/sec | #5433 |
+| Script → voice | ElevenLabs | Speech-to-speech voice replacement (NOT text-to-speech) | $5/mo | #5435 |
+| Video + voice → lip sync | PixVerse | Pass video + audio → lip-synced output | TBD | #5434 |
+| Orchestration | mission_control.py | End-to-end pipeline script | Local | #5436 |
+
+**Critical note on voice:** Use speech-to-speech, not text-to-speech. Someone performs lines with real emotion, ElevenLabs replaces the voice. TTS sounds flat. (From Daisy Studios creator.)
+
+### Social Launch
 
 | Task | Description |
 |------|-------------|
-| Set up Buffer/scheduling | Cross-posting tool for managing 5 platforms (agent-operable via API) |
-| Prepare launch batch | 2-3 posts per platform, scheduled for optimal times |
-| Write platform bios | Final bios with consistent voice across all accounts |
-| Update social avatars | Logo/character avatar on all platforms |
-| Launch on Twitter/X | First posts — hero images + character introductions |
-| Launch on Instagram | Carousel posts with character reveals |
-| Launch on TikTok | Short-form video content — character card reveals with audio |
-| Launch on Reddit | Post to r/StableDiffusion, r/AIArtLounge, r/AnimeArt (AI-friendly subs only) |
-| Launch on Facebook | Page setup + initial posts |
-| Behind-the-scenes content | Process shots from Blender/ComfyUI — builds trust and engagement |
+| Set up Buffer/scheduling | Cross-posting via API |
+| Prepare launch batch | 2-3 posts per platform |
+| Write platform bios | Consistent voice across accounts |
+| Launch on Twitter/X, Instagram, TikTok, Reddit, Facebook | Simultaneous |
+| Behind-the-scenes content | Process shots build trust |
 
-**Milestone:** All 5 platforms live with initial content. Flo-Fi exists publicly.
+**Milestone:** Fully autonomous content pipeline: write a script → agents handle the rest → TikTok-ready video. All 5 platforms live.
 
 ---
 
 ## Phase 4 — Growth
 
-Sustain, iterate, expand. This phase is ongoing.
+Sustain, iterate, expand. Ongoing.
 
 | Task | Description |
 |------|-------------|
-| Establish posting cadence | 4-5 posts/week across platforms. Weekly content calendar |
-| Content series: Character of the Week | Deep-dive on one character per week — lore, outfits, expressions |
-| Content series: Outfit Swap | Characters in each other's outfits. High engagement format |
-| Engagement strategy | Reply to comments, engage with other anime accounts, join conversations |
-| Analytics review | Weekly check on what's performing. Double down on winners |
-| Expand character roster | New characters based on audience response |
-| Explore animation | AI-generated animation loops for TikTok/Reels (must be agentic) |
-| Monetization exploration | When audience hits critical mass — merch, prints, Patreon |
+| Posting cadence | 4-5 posts/week, content calendar |
+| Content series | Character of the Week, Outfit Swap |
+| Engagement | Reply to comments, engage with anime community |
+| Analytics | Weekly review, double down on winners |
+| Expand roster | New characters based on audience response |
+| Animation | AI-generated loops for TikTok/Reels |
+| Monetization | Merch, prints, Patreon when audience hits critical mass |
 
-**Milestone:** Consistent posting cadence with growing follower counts across platforms.
+**Milestone:** Consistent posting with growing follower counts.
 
 ---
 
-## Open Questions (Revisit as we go)
+## Open Questions
 
-- What is "the Flo-Fi style"? — Needs style exploration (Phase 2, first task)
 - Do characters have connected lore / a shared universe?
 - What's the posting cadence sweet spot for agentic capacity?
-- When do we invest in animation (Phase 4 or later)?
 - At what follower count does monetization make sense?
 - Do we want a Flo-Fi website/portfolio eventually?
-- Can social media posting be fully agentic? (Buffer API, Twitter API, etc.)
