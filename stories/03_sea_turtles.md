@@ -15,14 +15,14 @@ Four-wheeler down the beach, hair everywhere, crowd gathering around a turtle re
 One of the directors keeping people back spots Flo — she's already in her bathing suit. Asks if she'd go in the water and chase the birds away from the babies. She looks at the drone like "can you believe this?" — already has her snorkeling mask, already has her GoPro. Jumps in. Swimming with dozens of baby sea turtles heading for the open ocean.
 
 ## The Shot That Stops Scrolling
-Drone hovering at the waterline, looking down at Flo swimming among tiny turtles heading for open water. This is a shot that freezes a thumb mid-scroll.
+Drone aerial shot looking straight down — Flo swimming among dozens of tiny turtles heading for open water. The drone can't go under with her, so it's this beautiful God's-eye view of her in the middle of all these tiny lives heading out to sea.
 
 ## Why It Works
 - She didn't plan any of it. She almost missed it entirely.
 - She was just ready because that's how she lives — bathing suit on, GoPro in the bag, always ready for whatever the day throws.
 - That's the entire Flo character bible distilled into one episode: not performing adventure, just living it.
 - The drone's panic trying to keep up with the four-wheeler is comedy gold.
-- The drone can't follow her underwater — it hovers nervously at the surface. Character moment for the drone.
+- The drone can't follow her underwater — stuck above, watching from the sky. Character moment for the drone.
 
 ## Technical Notes
 - Multiple scene types: van interior (wake up), beach action (four-wheeler), crowd scene, underwater
