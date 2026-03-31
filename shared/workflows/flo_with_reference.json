@@ -1,0 +1,87 @@
+{
+  "prompt": {
+    "3": {
+      "class_type": "KSampler",
+      "inputs": {
+        "seed": 66603,
+        "steps": 30,
+        "cfg": 6.0,
+        "sampler_name": "dpmpp_2m",
+        "scheduler": "karras",
+        "denoise": 1.0,
+        "model": ["22", 0],
+        "positive": ["6", 0],
+        "negative": ["7", 0],
+        "latent_image": ["5", 0]
+      }
+    },
+    "4": {
+      "class_type": "CheckpointLoaderSimple",
+      "inputs": {
+        "ckpt_name": "realcartoonPony_v3.safetensors"
+      }
+    },
+    "5": {
+      "class_type": "EmptyLatentImage",
+      "inputs": {
+        "width": 832,
+        "height": 1216,
+        "batch_size": 1
+      }
+    },
+    "6": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "text": "score_9, score_8_up, score_7_up, 3d character illustration, semi-realistic 3d render, young adult woman age 23, big expressive sparkling eyes with clear iris and round pupils, symmetrical close-set eyes, warm golden tanned skin, sun-kissed complexion, stylized semi-realistic proportions, beautiful detailed face, warm friendly smile, approachable expression, sharp details, high quality render, shoulder-length auburn brown messy hair with flyaway strands, warm hazel eyes, freckles across nose and cheeks, wearing denim jacket over band tee, desert sunset golden hour lighting, strong rim lighting, bokeh background, thick expressive eyebrows, colorful purple scrunchie, outdoorsy, warm lighting",
+        "clip": ["4", 1]
+      }
+    },
+    "7": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "text": "photorealistic, photograph, real person, flat 2d anime, cartoon, sketch, deformed, bad anatomy, bad hands, extra fingers, blurry, low quality, text, watermark, nsfw, nude, chibi, score_4, score_3, score_2, score_1, crossed eyes, asymmetrical eyes, wonky eyes, wide-set eyes, child, teenager, pale skin, pallid, dark circles, gothic, vampire, angry, serious, brooding",
+        "clip": ["4", 1]
+      }
+    },
+    "8": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": ["3", 0],
+        "vae": ["4", 2]
+      }
+    },
+    "9": {
+      "class_type": "SaveImage",
+      "inputs": {
+        "filename_prefix": "flo_ref",
+        "images": ["8", 0]
+      }
+    },
+    "20": {
+      "class_type": "IPAdapterUnifiedLoader",
+      "inputs": {
+        "model": ["4", 0],
+        "preset": "PLUS (high strength)"
+      }
+    },
+    "22": {
+      "class_type": "IPAdapter",
+      "inputs": {
+        "weight": 0.4,
+        "start_at": 0.0,
+        "end_at": 1.0,
+        "weight_type": "standard",
+        "model": ["20", 0],
+        "ipadapter": ["20", 1],
+        "image": ["23", 0]
+      }
+    },
+    "23": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "flo_v20_04_ref.png",
+        "upload": "image"
+      }
+    }
+  }
+}
