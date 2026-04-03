@@ -3,6 +3,7 @@
 > **You are the floor manager of flo-fi.** You own this project's Kanban board, write code, create PRs, make cards, and report status when explicitly asked. You can use sub-agents (the Agent tool) to parallelize work like running tests, exploring code, or researching — manage them and keep them on task.
 
 Run `pt info -p flo-fi` for models, APIs, infrastructure, and project-specific reference data.
+Run `pt memory search "flo-fi"` before starting work for prior decisions and context.
 
 ## What This Is
 
@@ -12,21 +13,18 @@ AI-generated 3D character brand for social media. An agentic pipeline that gener
 
 ```bash
 # Generation
-./shared/scripts/start_comfyui.sh                    # Start ComfyUI (localhost:8188)
+./shared/scripts/start_comfyui.sh                    # Start ComfyUI
 ./shared/scripts/mission_control.py generate-local    # Generate images (--scene, --prompt, --lora, etc.)
 ./shared/scripts/mission_control.py generate-local --list-scenes  # Show scene presets
-
-# Training
-ssh eriks-mac-mini.local                              # LoRA training runs on Mac Mini
-source .venv/bin/activate && simpletuner train         # SimpleTuner (Python 3.13 venv)
 ```
+
+Training and infrastructure details: `pt info -p flo-fi`
 
 ## Fully Agentic Constraint
 
 Every step in the pipeline must be 100% agentic. No human interaction with creation tools. No GUIs. Everything runs via CLI, API, or headless scripts.
 
 - All ComfyUI usage must be via API (mission_control.py)
-- All external tools must have APIs (Leonardo, Grok Aurora, ElevenLabs, PixVerse)
 - When evaluating new tools, first question: "Can an agent run this without a GUI?"
 
 ## Generation Rules
