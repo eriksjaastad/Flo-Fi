@@ -19,12 +19,8 @@ def get_project_root() -> Path:
     return Path(__file__).resolve().parent.parent
 
 def get_env_var(name: str, default=None) -> str:
-    """
-    Get environment variable with Doppler-ready naming support.
-    Checks FLOFI_ prefixed version first, then generic name.
-    """
-    doppler_name = f"FLOFI_{name}"
-    return os.getenv(doppler_name) or os.getenv(name) or default
+    """Get environment variable. Secrets injected via: doppler run -- <command>"""
+    return os.getenv(name) or default
 
 # Centralized Constants
 SDXL_RESOLUTION = 1024
