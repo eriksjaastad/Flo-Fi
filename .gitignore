@@ -6,6 +6,23 @@ tools/
 
 # ComfyUI outputs
 output/
+v*_desert_sunset_*.png
+
+# Ephemeral session state
+PROGRESS.md
+
+# Python
+__pycache__/
+*.pyc
+
+# Logs
+debug.log
+data/train_grind.log
+
+# ML caches and large binaries
+cache/
+data/midjourney_videos/
+data/training_v3_frames/
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies

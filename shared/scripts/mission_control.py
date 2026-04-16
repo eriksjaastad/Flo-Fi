@@ -47,6 +47,33 @@ FLO_NEGATIVE = (
     "vampire, angry, serious, brooding"
 )
 
+# Locked training prompt — derived from v20_04 generation log, NOT from FLO_FACE.
+# The ONLY thing that changes is the outfit description inserted between these two halves.
+FLO_TRAIN_PROMPT_BEFORE = (
+    "score_9, score_8_up, score_7_up, 3d character illustration, semi-realistic 3d render, "
+    "young adult woman age 23, big expressive sparkling eyes with clear iris and round pupils, "
+    "warm golden tanned skin, sun-kissed complexion, stylized semi-realistic proportions, "
+    "beautiful detailed face, warm friendly smile, approachable expression, sharp details, "
+    "high quality render, shoulder-length auburn brown messy hair with flyaway strands, "
+    "warm hazel eyes, freckles across nose and cheeks, thick expressive eyebrows, "
+    "hair in stylized clumps, colorful purple scrunchie, outdoorsy, warm lighting"
+)
+FLO_TRAIN_PROMPT_AFTER = "desert sunset golden hour lighting, strong rim lighting, bokeh background"
+FLO_TRAIN_NEGATIVE = (
+    "photorealistic, photograph, real person, flat 2d anime, cartoon, sketch, "
+    "deformed, bad anatomy, bad hands, extra fingers, blurry, low quality, text, watermark, "
+    "nsfw, nude, chibi, score_4, score_3, score_2, score_1, crossed eyes, asymmetrical eyes, "
+    "wonky eyes, child, teenager, pale skin, pallid, dark circles, gothic, "
+    "vampire, angry, serious, brooding"
+)
+# Locked training settings — CFG 6.0, 30 steps, dpmpp_2m karras, 832x1216, realcartoonPony_v3, NO LoRA
+FLO_TRAIN_CFG = 6.0
+FLO_TRAIN_STEPS = 30
+FLO_TRAIN_SAMPLER = "dpmpp_2m"
+FLO_TRAIN_CHECKPOINT = "realcartoonPony_v3.safetensors"
+FLO_TRAIN_WIDTH = 832
+FLO_TRAIN_HEIGHT = 1216
+
 # Scene presets — each has clothing, hair, setting, and lighting
 SCENES = {
     "desert-sunset": {
@@ -260,33 +287,59 @@ class MissionControl:
             print(f"\nUsage: ./shared/scripts/mission_control.py generate-local --scene {list(SCENES.keys())[0]}")
             return
 
-        # Build prompt from scene preset or raw --prompt
-        if args.scene:
-            scene = SCENES[args.scene]
-            prompt_text = f"{FLO_FACE}, {scene['hair']}, {scene['clothing']}, {scene['setting']}, {scene['extras']}"
-            if args.prompt:
-                # --prompt adds extra terms on top of the scene
-                prompt_text = f"{prompt_text}, {args.prompt}"
-            print(f"Scene: {args.scene} — {scene['description']}")
-        elif args.prompt:
-            prompt_text = args.prompt
+        # Training mode — locked settings, only outfit changes
+        if getattr(args, 'train', False):
+            outfit = getattr(args, 'outfit', None)
+            if not outfit:
+                print("Error: --train requires --outfit (e.g. --outfit 'coral tank top')")
+                return
+            if not args.prefix:
+                print("Error: --train requires --prefix (e.g. --prefix 'flo_train_71_coral_tank')")
+                return
+            prompt_text = f"{FLO_TRAIN_PROMPT_BEFORE}, wearing {outfit}, {FLO_TRAIN_PROMPT_AFTER}"
+            negative = FLO_TRAIN_NEGATIVE
+            steps = FLO_TRAIN_STEPS
+            cfg = FLO_TRAIN_CFG
+            sampler_name = FLO_TRAIN_SAMPLER
+            scheduler = "karras"
+            width = FLO_TRAIN_WIDTH
+            height = FLO_TRAIN_HEIGHT
+            seed = args.seed or int(time.time())
+            filename_prefix = args.prefix
+            checkpoint = FLO_TRAIN_CHECKPOINT
+            lora_name = None
+            lora_strength = 1.0
+            ipa_image = None
+            ipa_strength = 0.8
+            print(f"TRAIN MODE — outfit: {outfit}")
         else:
-            print("Error: either --prompt or --scene is required")
-            return
+            # Build prompt from scene preset or raw --prompt
+            if args.scene:
+                scene = SCENES[args.scene]
+                prompt_text = f"{FLO_FACE}, {scene['hair']}, {scene['clothing']}, {scene['setting']}, {scene['extras']}"
+                if args.prompt:
+                    # --prompt adds extra terms on top of the scene
+                    prompt_text = f"{prompt_text}, {args.prompt}"
+                print(f"Scene: {args.scene} — {scene['description']}")
+            elif args.prompt:
+                prompt_text = args.prompt
+            else:
+                print("Error: either --prompt or --scene is required")
+                return
 
-        negative = args.negative or FLO_NEGATIVE
-        steps = args.steps or 30
-        cfg = args.cfg or 5.5
-        sampler_name = getattr(args, 'sampler', None) or "dpmpp_2m"
-        scheduler = "normal" if sampler_name == "euler_ancestral" else "karras"
-        width = getattr(args, 'width', None) or 832
-        height = getattr(args, 'height', None) or 1216
-        seed = args.seed or int(time.time())
-        filename_prefix = args.prefix or "flofi"
-        checkpoint = getattr(args, 'model', None) or "Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors"
-        lora_name = getattr(args, 'lora', None)
-        lora_strength = getattr(args, 'lora_strength', 1.0)
-        ipa_image = getattr(args, 'ipadapter', None)
+            negative = args.negative or FLO_NEGATIVE
+            steps = args.steps or 30
+            cfg = args.cfg or 6.0
+            sampler_name = getattr(args, 'sampler', None) or "dpmpp_2m"
+            scheduler = "normal" if sampler_name == "euler_ancestral" else "karras"
+            width = getattr(args, 'width', None) or 832
+            height = getattr(args, 'height', None) or 1216
+            seed = args.seed or int(time.time())
+            filename_prefix = args.prefix or "flofi"
+            checkpoint = getattr(args, 'model', None) or "realcartoonPony_v3.safetensors"
+            lora_name = getattr(args, 'lora', None)
+            lora_strength = getattr(args, 'lora_strength', 1.0)
+            ipa_image = getattr(args, 'ipadapter', None)
         ipa_strength = getattr(args, 'ipa_strength', 0.8)
 
         # DreamShaper Turbo uses different settings
@@ -537,6 +590,8 @@ def main():
     local_parser.add_argument("--ipadapter", help="Reference image path for IPAdapter face lock")
     local_parser.add_argument("--ipa-strength", type=float, default=0.8, help="IPAdapter strength (default: 0.8)")
     local_parser.add_argument("--list-scenes", action="store_true", help="List available scene presets and exit")
+    local_parser.add_argument("--train", action="store_true", help="Training mode — locks all settings to v20_04 baseline. Only --outfit and --prefix change.")
+    local_parser.add_argument("--outfit", help="Outfit description for training mode (e.g. 'coral tank top')")
 
     # Setup pod
     subparsers.add_parser("setup-pod", help="Upload setup scripts to R2")
