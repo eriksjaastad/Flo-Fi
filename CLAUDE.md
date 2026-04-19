@@ -37,13 +37,9 @@ Every step in the pipeline must be 100% agentic. No human interaction with creat
 - All ComfyUI usage must be via API (mission_control.py)
 - When evaluating new tools, first question: "Can an agent run this without a GUI?"
 
-## LoRA Training
+## LoRA Training (deferred)
 
-**Use the `/lora-training` skill for ALL training decisions.** It lives at `~/.claude/skills/lora-training/SKILL.md`. Do not wing it.
-
-- **LoRA v1 is dead** — makes Flo younger at every strength tested. Do NOT use.
-- **LoRA v2 is dead** — overtrained on homogeneous data. Learned "golden hour girl in denim jacket" instead of Flo's face. See `data/experiment_log.csv` for full post-mortem.
-- v3 must follow the skill exactly: single source, no face descriptions in captions, face crops, clip_skip 2, rank 32, evaluate every checkpoint with 4-prompt protocol.
+LoRA training is on hold — Midjourney is the primary generator per PROGRESS.md. v1 and v2 both failed (see `data/experiment_log.jsonl`); v3 is deferred until we have ~100 diverse frames. When resuming, use the `/lora-training` skill — do not wing it.
 
 ## Generation Rules
 
