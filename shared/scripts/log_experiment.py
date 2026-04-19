@@ -14,7 +14,6 @@ Usage:
 import csv
 import json
 import sys
-import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -66,16 +65,6 @@ def extract_lora_info(entry):
 
 def extract_notable_prompt_changes(prompt):
     """Pull out non-standard elements from the prompt for quick scanning."""
-    # These are the "standard" FLO_FACE elements — anything else is notable
-    standard_terms = {
-        "score_9", "score_8_up", "score_7_up", "3d character illustration",
-        "semi-realistic 3d render", "young adult woman", "big expressive sparkling eyes",
-        "warm golden tanned skin", "sun-kissed complexion", "beautiful detailed face",
-        "warm friendly smile", "sharp details", "high quality render", "warm hazel eyes",
-        "freckles across nose and cheeks", "thick expressive eyebrows"
-    }
-
-    # Just return the full prompt — it's more useful than trying to diff
     if len(prompt) > 300:
         return prompt[:300] + "..."
     return prompt
