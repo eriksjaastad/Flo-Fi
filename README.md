@@ -2,6 +2,8 @@
 
 AI-generated 3D character brand for social media. Fully agentic pipeline — images, video, voice, lip sync — all CLI/API, zero GUI.
 
+> **LoRA training is deferred.** v1 and v2 both failed (see `data/experiment_log.jsonl` for post-mortems); v3 is on hold until we have ~100 diverse frames. Midjourney is the primary generator right now — see PROGRESS.md for current state. When resuming LoRA work, use the `/lora-training` skill.
+
 ## Quick Start
 
 ```bash
