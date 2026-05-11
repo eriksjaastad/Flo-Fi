@@ -32,3 +32,4 @@ data/training_v3_frames/
 
 # vercel
 .vercel
+.scratch/
