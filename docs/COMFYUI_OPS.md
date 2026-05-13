@@ -3,12 +3,15 @@
 ## 1. Starting ComfyUI
 
 ```bash
+ssh eriks-mac-mini.local
+cd /Users/eriksjaastad/projects/flo-fi
 ./shared/scripts/start_comfyui.sh
 ```
 
 - Runs on `http://127.0.0.1:8188`
 - Uses `--force-fp16` for Apple Silicon performance
 - Blocks the terminal — run in a background tab or use `&`
+- RealCartoon-Pony V3 and Juggernaut-XL checkpoint binaries live on the Mac mini only.
 
 Verify it's up:
 
@@ -146,7 +149,7 @@ curl -s http://127.0.0.1:8188/queue 2>/dev/null || echo "ComfyUI is down"
 
 See `docs/STYLE_GUIDE.md` for full details. Quick version:
 
-- **Model:** Juggernaut-XL v9
+- **Model:** RealCartoon-Pony V3
 - **Sampler:** DPM++ 2M Karras
 - **CFG:** 5.0-5.5
 - **Steps:** 30
