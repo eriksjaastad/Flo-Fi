@@ -5,6 +5,8 @@ Queues batches of 10 to ComfyUI, waits for them to render, repeats forever.
 Uses --train mode so all settings are locked. Kill with Ctrl+C to stop.
 
 Usage:
+    ssh eriks-mac-mini.local
+    cd /Users/eriksjaastad/projects/flo-fi
     uv run shared/scripts/train_grind.py                    # Run forever, auto-detect start number
     uv run shared/scripts/train_grind.py --start 91         # Start from specific number
 """

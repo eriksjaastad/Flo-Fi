@@ -14,6 +14,7 @@ USAGE:
 
 import argparse
 import json
+import socket
 import subprocess
 import sys
 import time
@@ -73,6 +74,22 @@ FLO_TRAIN_SAMPLER = "dpmpp_2m"
 FLO_TRAIN_CHECKPOINT = "realcartoonPony_v3.safetensors"
 FLO_TRAIN_WIDTH = 832
 FLO_TRAIN_HEIGHT = 1216
+
+# These checkpoint binaries are intentionally kept on the Mac mini only.
+# Do not make RunPod/cloud paths depend on them.
+MAC_MINI_ONLY_CHECKPOINTS = {
+    "realcartoonPony_v3.safetensors",
+    "Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors",
+}
+RUNPOD_CHECKPOINT = "noobaiXLVpredv10_v10.safetensors"
+
+
+def is_mac_mini_comfyui_host(host):
+    """Return whether a ComfyUI host points at the Mac mini."""
+    normalized = (host or "").lower()
+    if normalized in {"127.0.0.1", "localhost", "::1"}:
+        return "mac-mini" in socket.gethostname().lower()
+    return "mac-mini" in normalized
 
 # Scene presets — each has clothing, hair, setting, and lighting
 SCENES = {
@@ -252,7 +269,7 @@ class MissionControl:
             "steps": args.steps or 30,
             "cfg_scale": args.cfg or 5.5,
             "sampler": "dpmpp_2m_karras",
-            "checkpoint": "Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors",
+            "checkpoint": RUNPOD_CHECKPOINT,
             "count": args.count or 1,
             "filename_prefix": args.prefix or "flofi",
         }
@@ -341,6 +358,17 @@ class MissionControl:
             lora_strength = getattr(args, 'lora_strength', 1.0)
             ipa_image = getattr(args, 'ipadapter', None)
         ipa_strength = getattr(args, 'ipa_strength', 0.8)
+        host = args.host or "127.0.0.1"
+        port = args.port or 8188
+        count = getattr(args, 'count', 1) or 1
+
+        if checkpoint in MAC_MINI_ONLY_CHECKPOINTS and not is_mac_mini_comfyui_host(host):
+            print(
+                f"Error: {checkpoint} is Mac mini only. "
+                "Run this command from eriks-mac-mini.local, or pass --host eriks-mac-mini.local "
+                "to target a Mac mini ComfyUI server."
+            )
+            return
 
         # DreamShaper Turbo uses different settings
         if "DreamShaper" in checkpoint and "Turbo" in checkpoint:
@@ -451,10 +479,6 @@ class MissionControl:
                 "latent_image": ["5", 0],
             },
         }
-
-        host = args.host or "127.0.0.1"
-        port = args.port or 8188
-        count = getattr(args, 'count', 1) or 1
 
         for i in range(count):
             current_seed = seed + i if count > 1 else seed
@@ -584,7 +608,7 @@ def main():
     local_parser.add_argument("--prefix", help="Filename prefix (default: flofi)")
     local_parser.add_argument("--host", default="127.0.0.1", help="ComfyUI host")
     local_parser.add_argument("--port", type=int, default=8188, help="ComfyUI port")
-    local_parser.add_argument("--model", help="Checkpoint model name (default: Juggernaut-XL)")
+    local_parser.add_argument("--model", help="Checkpoint model name (default: RealCartoon-Pony V3; Mac mini only)")
     local_parser.add_argument("--lora", help="LoRA filename (e.g. pixar-style.safetensors)")
     local_parser.add_argument("--lora-strength", type=float, default=1.0, help="LoRA strength (default: 1.0)")
     local_parser.add_argument("--ipadapter", help="Reference image path for IPAdapter face lock")

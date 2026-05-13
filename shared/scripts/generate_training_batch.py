@@ -12,7 +12,8 @@ All images use:
 - Locked core prompt + locked negative
 - Individual variation per image
 
-Run: uv run shared/scripts/generate_training_batch.py
+Run on the Mac mini:
+    uv run shared/scripts/generate_training_batch.py
 """
 
 import random
