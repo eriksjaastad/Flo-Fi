@@ -150,13 +150,14 @@ class PipelineOrchestrator:
         sys.exit(1)
 
     def step_aurora_video(
-        self, still_path: Path, motion_prompt: str, output_path: Path
+        self, still_path: Path, still_url: Optional[str], motion_prompt: str, output_path: Path
     ) -> Optional[Path]:
         """
         Step 2: Generate video from still using xAI Aurora.
 
         Args:
-            still_path: Path to base still image
+            still_path: Path to base still image (for dry-run planning)
+            still_url: HTTPS URL to still image (required for live mode)
             motion_prompt: Text describing desired motion
             output_path: Where to save the generated video
 
@@ -168,7 +169,7 @@ class PipelineOrchestrator:
             "Aurora Image-to-Video",
             {
                 "Tool": "aurora.py (xAI Grok Imagine Video)",
-                "Image": str(still_path),
+                "Image": still_url if still_url else str(still_path),
                 "Prompt": motion_prompt,
                 "Duration": "10s",
                 "Resolution": "720p",
@@ -176,39 +177,35 @@ class PipelineOrchestrator:
             },
         )
 
-        # Initialize Aurora client
-        client = AuroraClient(dry_run=self.dry_run)
-
         if self.dry_run:
-            # Dry-run: validate image path format, but don't require file to exist
-            # (it might be generated in Step 1)
+            # Dry-run: just print the plan, don't call AuroraClient
             print("\n  DRY-RUN: Would submit to Aurora API with:")
-            print(f"    Image: {still_path}")
+            print(f"    Image: {still_url if still_url else str(still_path)}")
             print(f"    Prompt: {motion_prompt}")
             print(f"    Duration: 10s")
             print(f"    Resolution: 720p")
             print(f"    Aspect ratio: 16:9")
-            # Validate but don't execute
-            result = client.generate_video(
-                prompt=motion_prompt,
-                image_path=str(still_path),
-                duration=10,
-                resolution="720p",
-                wait=False,
-            )
+            print(f"\n  Note: Live mode requires --image-url (HTTPS)")
             self.steps_executed.append(("aurora", "dry_run"))
             return None
 
-        # Live mode: verify still exists before proceeding
-        if not still_path.exists():
-            print(f"\n  ERROR: Input still not found: {still_path}")
+        # Live mode: require HTTPS URL
+        if not still_url:
+            print(f"\n  ERROR: --image-url (HTTPS) required for live Aurora I2V.")
+            print(f"  Aurora API does not accept local file paths.")
+            print(f"\n  Options:")
+            print(f"    1. Upload still to public/signed HTTPS URL and pass via --image-url")
+            print(f"    2. Use --dry-run to test with local paths")
             sys.exit(1)
+
+        # Initialize Aurora client (live mode)
+        client = AuroraClient(dry_run=False)
 
         # Live mode: full Aurora I2V generation
         print("\n  Submitting to Aurora API...")
         result = client.generate_video(
             prompt=motion_prompt,
-            image_path=str(still_path),
+            image_path=still_url,  # Pass HTTPS URL
             duration=10,
             resolution="720p",
             aspect_ratio="16:9",
@@ -227,13 +224,13 @@ class PipelineOrchestrator:
             sys.exit(1)
 
     def step_voice_swap(
-        self, recorded_audio: Path, voice_name: str, output_path: Path
+        self, recorded_audio: Optional[Path], voice_name: str, output_path: Path
     ) -> Optional[Path]:
         """
         Step 3: Replace voice using ElevenLabs speech-to-speech.
 
         Args:
-            recorded_audio: Path to human-performed audio
+            recorded_audio: Path to human-performed audio (or None in dry-run)
             voice_name: Target voice (e.g., 'matilda')
             output_path: Where to save voice-swapped audio
 
@@ -245,25 +242,33 @@ class PipelineOrchestrator:
             "ElevenLabs Voice Swap",
             {
                 "Tool": "voice_swap.py (ElevenLabs speech-to-speech)",
-                "Input": str(recorded_audio),
+                "Input": str(recorded_audio) if recorded_audio else "[placeholder]",
                 "Voice": voice_name,
                 "Model": "eleven_multilingual_sts_v2",
                 "Output": str(output_path),
             },
         )
 
-        if not recorded_audio.exists() and not self.dry_run:
-            print(f"\n  ERROR: Input audio not found: {recorded_audio}")
-            sys.exit(1)
-
         if self.dry_run:
             print("\n  DRY-RUN: Would execute:")
             print(f"    doppler run -- uv run shared/scripts/voice_swap.py \\")
-            print(f"      {recorded_audio} \\")
+            print(f"      {recorded_audio if recorded_audio else '[recorded_audio.m4a]'} \\")
             print(f"      --voice {voice_name} \\")
             print(f"      --out {output_path}")
+            if not recorded_audio:
+                print(f"\n  Note: Provide --audio-input for live mode")
             self.steps_executed.append(("voice_swap", "dry_run"))
             return None
+
+        # Live mode: require audio file
+        if not recorded_audio:
+            print(f"\n  ERROR: --audio-input required for live mode")
+            print(f"  Record dialogue line and pass via --audio-input")
+            sys.exit(1)
+
+        if not recorded_audio.exists():
+            print(f"\n  ERROR: Input audio not found: {recorded_audio}")
+            sys.exit(1)
 
         # Live mode: full voice swap
         print("\n  Processing voice swap...")
@@ -413,24 +418,27 @@ class PipelineOrchestrator:
 
         # Step 2: Aurora I2V
         aurora_video = output_dir / f"scene_01_{shot_suffix}_video.mp4"
-        self.step_aurora_video(still_path, args.motion_prompt, aurora_video)
+        self.step_aurora_video(
+            still_path=still_path,
+            still_url=args.image_url,
+            motion_prompt=args.motion_prompt,
+            output_path=aurora_video,
+        )
 
-        # Step 3: Voice swap (or use provided audio)
+        # Step 3: Voice swap
         if args.audio_input:
             recorded_audio = Path(args.audio_input).resolve()
-            print(f"\n[Using Provided Audio]")
-            print(f"  Path: {recorded_audio}")
-            if not recorded_audio.exists() and not self.dry_run:
-                print(f"\n  ERROR: Provided audio not found: {recorded_audio}")
-                sys.exit(1)
-            # Still do voice swap
-            voice_audio = output_dir / f"scene_01_{shot_suffix}_voice.mp3"
-            self.step_voice_swap(recorded_audio, args.voice, voice_audio)
+            if not self.dry_run:
+                print(f"\n[Using Provided Audio]")
+                print(f"  Path: {recorded_audio}")
+                if not recorded_audio.exists():
+                    print(f"\n  ERROR: Provided audio not found: {recorded_audio}")
+                    sys.exit(1)
         else:
-            # Would need recorded audio - fail if not provided
-            print(f"\n  ERROR: --audio-input required (pre-recorded dialogue line)")
-            print(f"  Record dialogue line {args.line} and pass via --audio-input")
-            sys.exit(1)
+            recorded_audio = None
+
+        voice_audio = output_dir / f"scene_01_{shot_suffix}_voice.mp3"
+        self.step_voice_swap(recorded_audio, args.voice, voice_audio)
 
         # Step 4: PixVerse lip-sync
         final_output = Path(args.output) if args.output else output_dir / f"scene_01_{shot_suffix}_final.mp4"
@@ -470,20 +478,17 @@ def main():
 Examples:
   # Dry-run (default): validate and show plan
   doppler run -- uv run shared/scripts/scene_01_pipeline.py \\
+      --shot 11
+
+  # Dry-run with audio for full validation
+  doppler run -- uv run shared/scripts/scene_01_pipeline.py \\
       --shot 11 \\
-      --prompt "Flo at desk with drone, silhouette against window" \\
       --audio-input data/scenes/in_progress/recorded_line_3.m4a
 
-  # Live mode: execute full pipeline
+  # Live mode: execute full pipeline (requires --image-url for Aurora)
   doppler run -- uv run shared/scripts/scene_01_pipeline.py \\
       --shot 11 \\
-      --prompt "Flo at desk with drone" \\
-      --audio-input data/scenes/in_progress/recorded_line_3.m4a \\
-      --live
-
-  # Use pre-generated still:
-  doppler run -- uv run shared/scripts/scene_01_pipeline.py \\
-      --still data/scenes/in_progress/scene_01_shot_11_base.png \\
+      --image-url https://example.com/scene_01_shot_11_base.png \\
       --audio-input data/scenes/in_progress/recorded_line_3.m4a \\
       --live
 
@@ -494,9 +499,6 @@ Required Environment Variables (for --live):
 
 Set via Doppler:
   doppler run -- uv run shared/scripts/scene_01_pipeline.py ...
-
-Or via Cursor Dashboard:
-  Cloud Agents > Secrets
         """,
     )
 
@@ -535,9 +537,12 @@ Or via Cursor Dashboard:
         help="Path to pre-generated still image (skips ComfyUI step)",
     )
     parser.add_argument(
+        "--image-url",
+        help="HTTPS URL to still image (required for --live Aurora I2V)",
+    )
+    parser.add_argument(
         "--audio-input",
-        required=True,
-        help="Path to recorded audio (human performance, pre-voice-swap)",
+        help="Path to recorded audio (human performance, pre-voice-swap). Optional for dry-run, required for --live.",
     )
 
     # Output
