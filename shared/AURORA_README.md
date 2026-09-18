@@ -35,16 +35,18 @@ Generate video from a text prompt only:
 
 ### Image-to-Video
 
-Animate a still image:
+Animate a still image (requires HTTPS URL for live runs):
 
 ```bash
 ./shared/scripts/mission_control.py aurora-video \
-  --image data/scenes/desert-sunset/flo_frame_001.png \
+  --image "https://your-domain.com/images/flo_frame_001.png" \
   --prompt "Slow camera push-in, embers drift across frame, hair stirs in wind" \
   --duration 12 \
   --resolution 720p \
   --output output/aurora/flo_scene_01.mp4
 ```
+
+**Note:** The `--image` parameter must be an HTTPS URL for live API calls. Local file paths are only supported with `--dry-run`. Upload your images to a CDN, signed S3 URL, or public hosting before running image-to-video.
 
 ### Storyboard → Video
 
@@ -52,21 +54,31 @@ For multi-image storyboards, run image-to-video on each keyframe separately. The
 
 ### Dry Run
 
-Test without API key or making real calls:
+Test without API key or making real calls. Dry-run mode accepts local file paths for validation:
 
 ```bash
+# Text-to-video dry run
 ./shared/scripts/mission_control.py aurora-video \
   --prompt "Test prompt" \
   --duration 5 \
   --dry-run
+
+# Image-to-video dry run with local file
+./shared/scripts/mission_control.py aurora-video \
+  --image data/scenes/desert-sunset/flo_frame_001.png \
+  --prompt "Camera movement test" \
+  --duration 8 \
+  --dry-run
 ```
+
+Local file paths are validated in dry-run mode but are **not** supported for live API calls (which require HTTPS URLs).
 
 ## Parameters
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `--prompt` | Text describing motion/action | Required (or `--image`) |
-| `--image` | Starting image path (for I2V) | None |
+| `--image` | HTTPS URL of starting image (for I2V). Local paths only work with `--dry-run` | None |
 | `--model` | Model name | `grok-imagine-video-1.5` |
 | `--duration` | Video length in seconds (1-15) | 8 |
 | `--resolution` | Output quality (480p/720p/1080p) | 720p |
