@@ -48,7 +48,6 @@ def list_voices():
 
 def log_experiment(entry: dict, log_file: Path):
     """Append an experiment record to the JSONL log."""
-    entry["logged_at"] = datetime.now(timezone.utc).isoformat()
     with open(log_file, "a") as f:
         f.write(json.dumps(entry) + "\n")
 
@@ -93,8 +92,12 @@ def swap(input_path: Path, voice_name: str, out_path: Path, no_log: bool = False
     if not no_log:
         project_root = Path(__file__).parent.parent.parent
         log_file = project_root / "data" / "experiment_log.jsonl"
+        # Generate descriptive id from voice + input filename
+        input_slug = input_path.stem[:20].replace(" ", "_").replace("-", "_")
+        log_id = f"voice_swap_{voice_name}_{input_slug}"
         log_entry = {
             "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "id": log_id,
             "tool": "voice_swap",
             "voice_name": voice_name,
             "voice_id": voice_id,
