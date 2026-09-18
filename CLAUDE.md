@@ -7,6 +7,25 @@ Read DECISIONS.md before changing architecture or infrastructure.
 Run `pt info -p flo-fi` for models, APIs, infrastructure, and project-specific reference data.
 Run `pt memory search "flo-fi"` before starting work for prior decisions and context.
 
+## Authorization — Check Doppler First
+
+Before saying "I need to log in" or "credentials are missing," check Doppler. A `doppler.yaml` at repo root pins this project to the `flo-fi` / `dev` config. All API keys are already injected as environment variables when you run commands via `doppler run -- <command>`.
+
+**Available secrets (names only, never print values):**
+- `ELEVEN_LABS_API_KEY` — ElevenLabs speech-to-speech voice API
+- `FAL_AI_API_KEY` — Fal.ai image/video generation
+- `LEONARDO_API_KEY` — Leonardo.ai image generation (legacy)
+- `MESHY_API_KEY` — Meshy 3D model generation
+- `R2_*` — Cloudflare R2 storage credentials (bucket, endpoint, access keys)
+
+**Usage pattern:**
+```bash
+doppler run -- ./shared/scripts/mission_control.py generate-local --scene desert-sunset
+doppler run -- python3 shared/scripts/voice_swap.py input.wav output.wav
+```
+
+If a secret is genuinely missing, the user must add it via Cursor Dashboard (Cloud Agents > Secrets). Don't ask for values inline — they persist across runs and are repo/team scoped.
+
 ## What This Is
 
 AI-generated 3D character brand for social media. An agentic pipeline that generates images, video, voice, and lip sync — all via CLI/API, zero GUI.
