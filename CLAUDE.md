@@ -24,7 +24,11 @@ doppler run -- ./shared/scripts/mission_control.py generate-local --scene desert
 doppler run -- python3 shared/scripts/voice_swap.py input.wav output.wav
 ```
 
-If a secret is genuinely missing, the user must add it via Cursor Dashboard (Cloud Agents > Secrets). Don't ask for values inline — they persist across runs and are repo/team scoped.
+If a secret is genuinely missing, add it via Doppler CLI or the Doppler dashboard:
+```bash
+doppler secrets set ELEVEN_LABS_API_KEY --value "<key>"
+# or visit https://dashboard.doppler.com/ → flo-fi project → dev config
+```
 
 ## What This Is
 

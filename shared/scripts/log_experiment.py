@@ -12,6 +12,7 @@ Usage:
     python3 log_experiment.py --tool midjourney --id "flo_mj_001" --prompt "..." [options]
 """
 
+import argparse
 import json
 import sys
 from datetime import datetime, timezone
@@ -65,8 +66,8 @@ def log_comfyui_generation(intention="pending", strategy="pending"):
     """Append the latest ComfyUI generation to experiment_log.jsonl."""
     entry = get_last_generation()
     if not entry:
-        print("No generation found in log.")
-        return
+        print("Error: No generation found in log.", file=sys.stderr)
+        sys.exit(1)
 
     ensure_experiment_log_exists()
 
@@ -84,6 +85,7 @@ def log_comfyui_generation(intention="pending", strategy="pending"):
     lora_strength = entry.get("lora_strength", "")
     
     experiment_entry = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         "id": prefix,
         "tool": "comfyui",
@@ -122,6 +124,7 @@ def log_midjourney(
     weird=None,
     aspect_ratio=None,
     anchor_image=None,
+    reaction=None,
     intention="pending",
     strategy="pending",
     expectation="",
@@ -145,6 +148,7 @@ def log_midjourney(
     }
     
     experiment_entry = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         "id": experiment_id,
         "tool": "midjourney",
@@ -153,6 +157,7 @@ def log_midjourney(
         "expectation": expectation,
         "result_quality": result_quality,
         "result_notes": result_notes,
+        "reaction": reaction or "",
         "lesson_learned": "",
         "fix_for_next_time": "",
         "keeper": keeper,
@@ -166,85 +171,64 @@ def log_midjourney(
 
 
 if __name__ == "__main__":
-    args = sys.argv[1:]
+    parser = argparse.ArgumentParser(
+        description="Log generation experiments to experiment_log.jsonl",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Log last ComfyUI generation
+  python3 log_experiment.py --intention "test v20_04" --strategy "locked prompt"
+  
+  # Log Midjourney generation
+  python3 log_experiment.py --tool midjourney --id flo_mj_001 --prompt "flo at sunset" \\
+    --ow 50 --ar 16:9 --reaction "eyes too wide" --keeper yes
+"""
+    )
     
-    # Parse args
-    tool = None
-    experiment_id = None
-    prompt = None
-    stylize = None
-    weird = None
-    aspect_ratio = None
-    anchor_image = None
-    intention = "pending"
-    strategy = "pending"
-    expectation = ""
-    result_quality = ""
-    result_notes = ""
-    keeper = ""
+    parser.add_argument("--tool", choices=["comfyui", "midjourney"], 
+                        help="Generation tool (default: comfyui)")
+    parser.add_argument("--id", help="Experiment ID (required for Midjourney)")
+    parser.add_argument("--prompt", help="Generation prompt (required for Midjourney)")
+    parser.add_argument("--stylize", help="Midjourney stylize value")
+    parser.add_argument("--weird", "--ow", dest="weird", help="Midjourney weird/ow value")
+    parser.add_argument("--ar", dest="aspect_ratio", help="Midjourney aspect ratio (e.g. 16:9)")
+    parser.add_argument("--anchor", dest="anchor_image", help="Midjourney anchor/reference image path")
+    parser.add_argument("--reaction", help="Initial reaction notes")
+    parser.add_argument("--intention", default="pending", help="What we're trying to achieve")
+    parser.add_argument("--strategy", default="pending", help="Approach being used")
+    parser.add_argument("--expectation", default="", help="Expected outcome")
+    parser.add_argument("--result-quality", default="", help="Quality rating")
+    parser.add_argument("--result-notes", default="", help="Result notes")
+    parser.add_argument("--keeper", default="", help="Keep this result? (yes/no)")
     
-    i = 0
-    while i < len(args):
-        if args[i] == "--tool" and i + 1 < len(args):
-            tool = args[i + 1]
-            i += 2
-        elif args[i] == "--id" and i + 1 < len(args):
-            experiment_id = args[i + 1]
-            i += 2
-        elif args[i] == "--prompt" and i + 1 < len(args):
-            prompt = args[i + 1]
-            i += 2
-        elif args[i] == "--stylize" and i + 1 < len(args):
-            stylize = args[i + 1]
-            i += 2
-        elif args[i] == "--weird" and i + 1 < len(args):
-            weird = args[i + 1]
-            i += 2
-        elif args[i] == "--ar" and i + 1 < len(args):
-            aspect_ratio = args[i + 1]
-            i += 2
-        elif args[i] == "--anchor" and i + 1 < len(args):
-            anchor_image = args[i + 1]
-            i += 2
-        elif args[i] == "--intention" and i + 1 < len(args):
-            intention = args[i + 1]
-            i += 2
-        elif args[i] == "--strategy" and i + 1 < len(args):
-            strategy = args[i + 1]
-            i += 2
-        elif args[i] == "--expectation" and i + 1 < len(args):
-            expectation = args[i + 1]
-            i += 2
-        elif args[i] == "--result-quality" and i + 1 < len(args):
-            result_quality = args[i + 1]
-            i += 2
-        elif args[i] == "--result-notes" and i + 1 < len(args):
-            result_notes = args[i + 1]
-            i += 2
-        elif args[i] == "--keeper" and i + 1 < len(args):
-            keeper = args[i + 1]
-            i += 2
-        else:
-            i += 1
+    args = parser.parse_args()
+    
+    # Validate tool-specific requirements
+    tool = args.tool or "comfyui"
+    
+    if tool not in ["comfyui", "midjourney"]:
+        print(f"Error: Unknown tool '{tool}'. Must be 'comfyui' or 'midjourney'.", file=sys.stderr)
+        sys.exit(1)
     
     if tool == "midjourney":
-        if not experiment_id or not prompt:
-            print("Error: --id and --prompt required for Midjourney logging")
+        if not args.id or not args.prompt:
+            print("Error: --id and --prompt required for Midjourney logging", file=sys.stderr)
             sys.exit(1)
         log_midjourney(
-            experiment_id=experiment_id,
-            prompt=prompt,
-            stylize=stylize,
-            weird=weird,
-            aspect_ratio=aspect_ratio,
-            anchor_image=anchor_image,
-            intention=intention,
-            strategy=strategy,
-            expectation=expectation,
-            result_quality=result_quality,
-            result_notes=result_notes,
-            keeper=keeper
+            experiment_id=args.id,
+            prompt=args.prompt,
+            stylize=args.stylize,
+            weird=args.weird,
+            aspect_ratio=args.aspect_ratio,
+            anchor_image=args.anchor_image,
+            reaction=args.reaction,
+            intention=args.intention,
+            strategy=args.strategy,
+            expectation=args.expectation,
+            result_quality=args.result_quality,
+            result_notes=args.result_notes,
+            keeper=args.keeper
         )
     else:
         # Default: log from generations.jsonl (ComfyUI)
-        log_comfyui_generation(intention=intention, strategy=strategy)
+        log_comfyui_generation(intention=args.intention, strategy=args.strategy)
