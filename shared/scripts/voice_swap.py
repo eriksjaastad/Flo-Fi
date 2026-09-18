@@ -12,8 +12,10 @@ Usage:
 """
 
 import argparse
+import json
 import os
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
@@ -44,7 +46,14 @@ def list_voices():
     print(f"\nUsage: --voice {DEFAULT_VOICE}")
 
 
-def swap(input_path: Path, voice_name: str, out_path: Path) -> Path:
+def log_experiment(entry: dict, log_file: Path):
+    """Append an experiment record to the JSONL log."""
+    entry["logged_at"] = datetime.now(timezone.utc).isoformat()
+    with open(log_file, "a") as f:
+        f.write(json.dumps(entry) + "\n")
+
+
+def swap(input_path: Path, voice_name: str, out_path: Path, no_log: bool = False) -> Path:
     api_key = os.environ.get("ELEVEN_LABS_API_KEY")
     if not api_key:
         sys.exit("ERROR: ELEVEN_LABS_API_KEY not set. Run via: doppler run -- uv run ...")
@@ -79,6 +88,30 @@ def swap(input_path: Path, voice_name: str, out_path: Path) -> Path:
     out_path.write_bytes(response.content)
     size_kb = len(response.content) / 1024
     print(f"\nSaved: {out_path} ({size_kb:.1f} KB)")
+
+    # Log to experiment log
+    if not no_log:
+        project_root = Path(__file__).parent.parent.parent
+        log_file = project_root / "data" / "experiment_log.jsonl"
+        log_entry = {
+            "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "tool": "voice_swap",
+            "voice_name": voice_name,
+            "voice_id": voice_id,
+            "model": MODEL_ID,
+            "input_file": str(input_path.name),
+            "output_file": str(out_path.name),
+            "output_size_kb": round(size_kb, 1),
+            "settings": {
+                "stability": 0.5,
+                "similarity_boost": 0.8,
+                "style": 0.3,
+                "use_speaker_boost": True,
+            },
+        }
+        log_experiment(log_entry, log_file)
+        print(f"Logged to {log_file.relative_to(project_root)}")
+
     return out_path
 
 
@@ -88,6 +121,7 @@ def main():
     parser.add_argument("--voice", default=DEFAULT_VOICE, help=f"Target voice name (default: {DEFAULT_VOICE})")
     parser.add_argument("--out", help="Output path (default: <input>_<voice>.mp3)")
     parser.add_argument("--list-voices", action="store_true", help="List curated stock voices and exit")
+    parser.add_argument("--no-log", action="store_true", help="Skip logging to experiment_log.jsonl")
     args = parser.parse_args()
 
     if args.list_voices:
@@ -104,7 +138,7 @@ def main():
     else:
         out_path = input_path.parent / f"{input_path.stem}_{args.voice}.mp3"
 
-    swap(input_path, args.voice, out_path)
+    swap(input_path, args.voice, out_path, no_log=args.no_log)
 
 
 if __name__ == "__main__":
