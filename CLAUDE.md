@@ -42,6 +42,13 @@ AI-generated 3D character brand for social media. An agentic pipeline that gener
 ./shared/scripts/mission_control.py generate-local --train --outfit "coral tank top" --prefix "flo_train_71_coral_tank"  # Training grind (locked settings)
 ./shared/scripts/mission_control.py generate-local --scene desert-sunset  # Scene presets (creative use)
 ./shared/scripts/mission_control.py generate-local --list-scenes           # Show scene presets
+
+# Leonardo AI (Nano Banana family)
+doppler run -- ./shared/scripts/mission_control.py generate-leonardo --prompt "3d character portrait" --model nano-banana-pro
+
+# Voice (speech-to-speech only)
+doppler run -- uv run shared/scripts/voice_swap.py input.m4a --voice matilda --out output.mp3
+doppler run -- uv run shared/scripts/voice_swap.py --list-voices  # Show available voices
 ```
 
 Training and infrastructure details: `pt info -p flo-fi`
