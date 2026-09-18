@@ -14,6 +14,7 @@ USAGE:
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import time
@@ -552,6 +553,97 @@ class MissionControl:
         output_dir = self.project_root / "output" / job_id
         self.download_from_r2(f"{RESULTS_PATH}/{job_id}/", output_dir)
 
+    def cmd_generate_leonardo(self, args):
+        """Generate images using Leonardo AI (Nano Banana family)"""
+        sys.path.insert(0, str(self.project_root / "shared"))
+        from leonardo import LeonardoClient
+
+        # Check for API key
+        api_key = os.environ.get("LEONARDO_API_KEY")
+        if not api_key:
+            print("ERROR: LEONARDO_API_KEY not set.")
+            print("Run via: doppler run -- ./shared/scripts/mission_control.py generate-leonardo ...")
+            sys.exit(1)
+
+        client = LeonardoClient(api_key=api_key)
+
+        # Build parameters (argparse ensures --prompt is present)
+        model = args.model or "nano-banana-pro"
+        width = args.width or 1024
+        height = args.height or 1024
+        quantity = args.count or 1
+        reference_images = args.reference or []
+        reference_strength = args.ref_strength or "MID"
+        prompt_enhance = "ON" if args.enhance else "OFF"
+        seed = args.seed
+        wait = not args.no_wait
+        output_dir = self.project_root / "output" / "leonardo"
+
+        print(f"Leonardo Generation")
+        print(f"  Model: {model}")
+        print(f"  Prompt: {args.prompt}")
+        print(f"  Size: {width}x{height}")
+        print(f"  Quantity: {quantity}")
+        if reference_images:
+            print(f"  References: {len(reference_images)} image(s) @ {reference_strength} strength")
+        print()
+
+        result = client.generate(
+            prompt=args.prompt,
+            model=model,
+            width=width,
+            height=height,
+            quantity=quantity,
+            reference_images=reference_images if reference_images else None,
+            reference_strength=reference_strength,
+            prompt_enhance=prompt_enhance,
+            seed=seed,
+            wait=wait,
+        )
+
+        # Download if completed
+        if result["status"] == "COMPLETE" and result["images"]:
+            prefix = args.prefix or "leonardo"
+            saved = client.download_images(result["images"], str(output_dir), prefix=prefix)
+            print()
+            print(client.cost_report())
+            print()
+            print(f"Images saved to {output_dir}")
+
+            # Log to experiment_log.jsonl
+            # Generate descriptive id from prompt + model
+            prompt_slug = args.prompt[:30].lower().replace(" ", "_").replace(",", "")
+            log_id = f"leonardo_{model.replace('-', '_')}_{prompt_slug}"
+            log_entry = {
+                "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                "id": log_id,
+                "tool": "leonardo",
+                "model": model,
+                "prompt": args.prompt,
+                "generation_id": result["generation_id"],
+                "cost": result["cost"],
+                "quantity": quantity,
+                "status": result["status"],
+                "output_files": [Path(p).name for p in saved],
+                "settings": {
+                    "width": width,
+                    "height": height,
+                    "reference_strength": reference_strength,
+                    "prompt_enhance": prompt_enhance,
+                    "seed": seed,
+                },
+            }
+            log_file = self.project_root / "data" / "experiment_log.jsonl"
+            with open(log_file, "a") as f:
+                f.write(json.dumps(log_entry) + "\n")
+            print(f"Logged to {log_file.relative_to(self.project_root)}")
+        else:
+            print(f"Generation status: {result['status']}")
+            print(f"Cost: ${result['cost']:.4f}")
+            if not wait:
+                print(f"Generation ID: {result['generation_id']}")
+                print("   Poll manually or re-run with --wait")
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -605,6 +697,20 @@ def main():
     dl_parser.add_argument("--job", required=True, help="Job ID")
     dl_parser.add_argument("--force", action="store_true", help="Download even if not completed")
 
+    # Generate Leonardo
+    leo_parser = subparsers.add_parser("generate-leonardo", help="Generate images via Leonardo AI (Nano Banana)")
+    leo_parser.add_argument("--prompt", required=True, help="Text prompt for image generation")
+    leo_parser.add_argument("--model", choices=["nano-banana", "nano-banana-pro", "nano-banana-2"], help="Leonardo model (default: nano-banana-pro)")
+    leo_parser.add_argument("--width", type=int, help="Image width (default: 1024)")
+    leo_parser.add_argument("--height", type=int, help="Image height (default: 1024)")
+    leo_parser.add_argument("--count", type=int, help="Number of images (default: 1)")
+    leo_parser.add_argument("--reference", action="append", help="Reference image path (can be specified multiple times)")
+    leo_parser.add_argument("--ref-strength", choices=["LOW", "MID", "HIGH"], help="Reference strength (default: MID)")
+    leo_parser.add_argument("--enhance", action="store_true", help="Enable prompt enhancement")
+    leo_parser.add_argument("--seed", type=int, help="Seed for reproducibility")
+    leo_parser.add_argument("--prefix", help="Output filename prefix (default: leonardo)")
+    leo_parser.add_argument("--no-wait", action="store_true", help="Don't wait for generation to complete")
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
@@ -614,6 +720,7 @@ def main():
     commands = {
         "generate": mc.cmd_generate,
         "generate-local": mc.cmd_generate_local,
+        "generate-leonardo": mc.cmd_generate_leonardo,
         "setup-pod": mc.cmd_setup_pod,
         "status": mc.cmd_status,
         "download": mc.cmd_download,
