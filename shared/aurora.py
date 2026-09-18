@@ -147,9 +147,24 @@ class AuroraClient:
             raise ValueError(f"Aspect ratio must be one of: {', '.join(VALID_ASPECT_RATIOS)}")
         
         if image_path:
-            img_file = Path(image_path)
-            if not img_file.exists():
-                raise FileNotFoundError(f"Image not found: {image_path}")
+            # Validate image path/URL
+            if not self.dry_run:
+                # Live runs require HTTPS URLs (xAI API requirement)
+                if not (image_path.startswith("https://") or image_path.startswith("http://")):
+                    print("ERROR: --image must be an HTTPS URL for live API calls.", file=sys.stderr)
+                    print("Local file paths are only supported with --dry-run.", file=sys.stderr)
+                    print("", file=sys.stderr)
+                    print("Options:", file=sys.stderr)
+                    print("  1. Upload your image to a public/signed HTTPS URL", file=sys.stderr)
+                    print("  2. Use --dry-run flag to test with local paths", file=sys.stderr)
+                    print("  3. Wait for xAI Files API upload support (not yet implemented)", file=sys.stderr)
+                    sys.exit(1)
+            else:
+                # Dry-run mode: validate local file exists
+                if not (image_path.startswith("https://") or image_path.startswith("http://")):
+                    img_file = Path(image_path)
+                    if not img_file.exists():
+                        raise FileNotFoundError(f"Image not found: {image_path}")
         
         # Build request payload
         payload: dict = {
@@ -163,11 +178,9 @@ class AuroraClient:
             payload["aspect_ratio"] = aspect_ratio
         
         if image_path:
-            # For image-to-video, include image URL or file_id
-            # For now, we'll use a publicly accessible URL approach
-            # In production, you'd upload to xAI Files API or use a signed URL
+            # xAI API requires HTTPS URL for image parameter
             payload["image"] = {
-                "url": str(Path(image_path).absolute())
+                "url": image_path
             }
         
         # Dry run mode

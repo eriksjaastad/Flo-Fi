@@ -796,7 +796,6 @@ def main():
     dl_parser.add_argument("--job", required=True, help="Job ID")
     dl_parser.add_argument("--force", action="store_true", help="Download even if not completed")
 
-<<<<<<< HEAD
     # Generate Leonardo
     leo_parser = subparsers.add_parser("generate-leonardo", help="Generate images via Leonardo AI (Nano Banana)")
     leo_parser.add_argument("--prompt", required=True, help="Text prompt for image generation")
@@ -810,7 +809,7 @@ def main():
     leo_parser.add_argument("--seed", type=int, help="Seed for reproducibility")
     leo_parser.add_argument("--prefix", help="Output filename prefix (default: leonardo)")
     leo_parser.add_argument("--no-wait", action="store_true", help="Don't wait for generation to complete")
-=======
+
     # Aurora video
     aurora_parser = subparsers.add_parser("aurora-video", help="Generate video with xAI Aurora / Grok Imagine Video")
     aurora_parser.add_argument("--prompt", help="Text prompt describing desired motion/action")
@@ -824,7 +823,6 @@ def main():
     aurora_parser.add_argument("--poll-interval", type=int, default=5, help="Seconds between status polls (default: 5)")
     aurora_parser.add_argument("--max-wait", type=int, default=300, help="Maximum seconds to wait for completion (default: 300)")
     aurora_parser.add_argument("--dry-run", action="store_true", help="Validate inputs but don't make API calls")
->>>>>>> 478ba77 (feat: add xAI Aurora/Grok Imagine Video API integration)
 
     args = parser.parse_args()
     if not args.command:
