@@ -69,7 +69,7 @@ source .venv/bin/activate
 
 # LoRA training (runs on Mac Mini)
 ssh eriks-mac-mini.local
-cd /Users/eriksjaastad/Flo-Fi && source .venv/bin/activate && simpletuner train
+cd ~/projects/flo-fi && source .venv/bin/activate && simpletuner train
 ```
 
 ## Reference
