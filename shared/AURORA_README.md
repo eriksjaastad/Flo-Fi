@@ -4,13 +4,19 @@ xAI video generation client for flo-fi. Generates videos from text prompts or st
 
 ## Setup
 
-Set your xAI API key:
+Set your xAI API key via Doppler:
+
+```bash
+doppler secrets set XAI_API_KEY
+```
+
+Or export directly:
 
 ```bash
 export XAI_API_KEY='your-key-here'
 ```
 
-Or add it to Cursor Cloud Agent secrets in the dashboard.
+For cloud agents, you can optionally add it to Cursor Cloud Agent secrets in the dashboard.
 
 ## Usage
 
