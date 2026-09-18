@@ -563,11 +563,11 @@ class MissionControl:
         if not api_key:
             print("ERROR: LEONARDO_API_KEY not set.")
             print("Run via: doppler run -- ./shared/scripts/mission_control.py generate-leonardo ...")
-            return
+            sys.exit(1)
 
         client = LeonardoClient(api_key=api_key)
 
-        # Build parameters
+        # Build parameters (argparse ensures --prompt is present)
         model = args.model or "nano-banana-pro"
         width = args.width or 1024
         height = args.height or 1024
@@ -587,11 +587,6 @@ class MissionControl:
         if reference_images:
             print(f"  References: {len(reference_images)} image(s) @ {reference_strength} strength")
         print()
-
-        # Generate (dry-run for no prompt or help)
-        if not args.prompt:
-            print("ERROR: --prompt is required")
-            return
 
         result = client.generate(
             prompt=args.prompt,
@@ -616,8 +611,12 @@ class MissionControl:
             print(f"Images saved to {output_dir}")
 
             # Log to experiment_log.jsonl
+            # Generate descriptive id from prompt + model
+            prompt_slug = args.prompt[:30].lower().replace(" ", "_").replace(",", "")
+            log_id = f"leonardo_{model.replace('-', '_')}_{prompt_slug}"
             log_entry = {
                 "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                "id": log_id,
                 "tool": "leonardo",
                 "model": model,
                 "prompt": args.prompt,
@@ -635,7 +634,6 @@ class MissionControl:
                 },
             }
             log_file = self.project_root / "data" / "experiment_log.jsonl"
-            log_entry["logged_at"] = datetime.now(timezone.utc).isoformat()
             with open(log_file, "a") as f:
                 f.write(json.dumps(log_entry) + "\n")
             print(f"Logged to {log_file.relative_to(self.project_root)}")
