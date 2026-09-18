@@ -67,9 +67,9 @@ Edit the prompt in the green CLIP nodes, change the seed, hit **Queue Prompt**.
 # Python venv (SimpleTuner, training tools)
 source .venv/bin/activate
 
-# LoRA training (runs on Mac Mini)
+# LoRA training (runs on Mac Mini, from repo root)
 ssh eriks-mac-mini.local
-cd /Users/eriksjaastad/Flo-Fi && source .venv/bin/activate && simpletuner train
+cd <path-to-flo-fi-clone> && source .venv/bin/activate && simpletuner train
 ```
 
 ## Reference
