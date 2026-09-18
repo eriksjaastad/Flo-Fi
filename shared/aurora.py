@@ -159,7 +159,12 @@ class AuroraClient:
                     print("  2. Use --dry-run flag to test with local paths", file=sys.stderr)
                     print("  3. Wait for xAI Files API upload support (not yet implemented)", file=sys.stderr)
                     sys.exit(1)
-            # In dry-run mode, accept any path format without validation
+            else:
+                # Dry-run mode: validate local file exists
+                if not (image_path.startswith("https://") or image_path.startswith("http://")):
+                    img_file = Path(image_path)
+                    if not img_file.exists():
+                        raise FileNotFoundError(f"Image not found: {image_path}")
         
         # Build request payload
         payload: dict = {

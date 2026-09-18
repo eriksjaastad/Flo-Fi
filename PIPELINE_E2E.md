@@ -18,17 +18,14 @@ Full orchestration for Scene 01 (Apartment Origin): **ComfyUI → Aurora → Ele
 ### Quick Start (Dry-Run)
 
 ```bash
-# Validate pipeline with Scene 01 shot 11, dialogue line 3
-doppler run -- uv run shared/scripts/scene_01_pipeline.py \
-    --shot 11 \
-    --prompt "Flo at desk with drone, silhouette against window" \
-    --audio-input data/scenes/in_progress/recorded_line_3.m4a
+# Validate pipeline with Scene 01 shot 11
+doppler run -- uv run shared/scripts/scene_01_pipeline.py --shot 11
 ```
 
 **Expected output:**
-- Environment key check (XAI_API_KEY, ELEVEN_LABS_API_KEY, PIXVERSE_API_KEY)
 - Full step-by-step plan with exact commands
 - Exit 0 with "Dry-run complete" message
+- Note about --image-url required for live Aurora
 
 ### Live Execution
 
@@ -36,22 +33,22 @@ doppler run -- uv run shared/scripts/scene_01_pipeline.py \
 # Execute full pipeline with actual API calls
 doppler run -- uv run shared/scripts/scene_01_pipeline.py \
     --shot 11 \
-    --prompt "Flo at desk with drone" \
+    --image-url https://example.com/scene_01_shot_11_base.png \
     --audio-input data/scenes/in_progress/recorded_line_3.m4a \
     --live
 ```
 
 **Requirements for `--live`:**
-- All three API keys set via Doppler (or Cursor Dashboard: Cloud Agents > Secrets)
-- Pre-recorded dialogue audio (human performance, not yet voice-swapped)
-- ComfyUI server running for Step 1 (or use `--still` to skip)
+- All three API keys set via Doppler
+- `--image-url` (HTTPS) for Aurora I2V
+- `--audio-input` for recorded dialogue (human performance, not yet voice-swapped)
 
 ### Use Pre-Generated Assets
 
 ```bash
-# Skip ComfyUI step with existing still
+# Provide HTTPS URL to existing still for live Aurora I2V
 doppler run -- uv run shared/scripts/scene_01_pipeline.py \
-    --still data/scenes/in_progress/scene_01_shot_11_base.png \
+    --image-url https://r2.example.com/scene_01_shot_11_base.png \
     --audio-input data/scenes/in_progress/recorded_line_3.m4a \
     --live
 ```
@@ -61,6 +58,7 @@ doppler run -- uv run shared/scripts/scene_01_pipeline.py \
 ```bash
 doppler run -- uv run shared/scripts/scene_01_pipeline.py \
     --shot 11 \
+    --image-url https://r2.example.com/still.png \
     --audio-input data/scenes/in_progress/recorded_line_3.m4a \
     --output data/scenes/in_progress/scene_01_shot_11_final.mp4 \
     --live
@@ -82,8 +80,9 @@ For CI/testing, provide a pre-generated still via `--still` flag. Full ComfyUI i
 
 **Tool:** `shared/aurora.py` (xAI Grok Imagine Video API)
 
-- Takes base still + motion prompt → 10s video clip at 720p
-- Requires HTTPS image URLs for live API calls (local paths OK in dry-run)
+- Takes HTTPS image URL + motion prompt → 10s video clip at 720p
+- **Requires HTTPS URL for live API calls** (pass via `--image-url`)
+- Local paths only supported in dry-run mode
 - Polls asynchronously until generation completes (default max wait: 5 minutes)
 
 **Cost:** ~$0.10 per 10s video (check xAI pricing)
@@ -125,8 +124,7 @@ All API keys required for `--live` mode:
 doppler run -- uv run shared/scripts/scene_01_pipeline.py ...
 ```
 
-**Cursor Cloud Agents:**
-Add secrets at: **Cloud Agents > Secrets** in Cursor Dashboard.
+**Alternative:** Cursor Cloud Agents can read secrets from Cursor Dashboard (Cloud Agents > Secrets) as a secondary option.
 
 ## Experiment Logging
 
@@ -172,7 +170,7 @@ Pipeline runs are logged to `data/experiment_log.jsonl` **only on successful com
 ERROR: Missing required environment variables:
   - XAI_API_KEY
 
-Set them via Doppler or export them manually:
+Set them via Doppler:
   doppler run -- uv run shared/scripts/scene_01_pipeline.py ...
 ```
 
@@ -181,7 +179,21 @@ Set them via Doppler or export them manually:
 ### Missing Input File
 
 ```
-ERROR: Input audio not found: data/scenes/in_progress/recorded_line_3.m4a
+ERROR: --audio-input required for live mode
+Record dialogue line and pass via --audio-input
+```
+
+**Exit code:** 1
+
+### Missing Image URL for Live Aurora
+
+```
+ERROR: --image-url (HTTPS) required for live Aurora I2V.
+Aurora API does not accept local file paths.
+
+Options:
+  1. Upload still to public/signed HTTPS URL and pass via --image-url
+  2. Use --dry-run to test with local paths
 ```
 
 **Exit code:** 1
