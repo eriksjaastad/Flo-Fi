@@ -644,6 +644,105 @@ class MissionControl:
                 print(f"Generation ID: {result['generation_id']}")
                 print("   Poll manually or re-run with --wait")
 
+    def cmd_aurora_video(self, args):
+        """Generate video using xAI Aurora / Grok Imagine Video"""
+        sys.path.insert(0, str(Path(__file__).parent.parent))
+        from aurora import AuroraClient
+        
+        # Initialize client with dry-run mode if requested
+        dry_run = getattr(args, 'dry_run', False)
+        
+        try:
+            client = AuroraClient(dry_run=dry_run)
+        except SystemExit:
+            return
+        
+        # Validate inputs
+        if not args.prompt and not args.image:
+            print("Error: Must provide either --prompt or --image (or both)")
+            return
+        
+        prompt = args.prompt or "Generate video from this image"
+        
+        # Generate video
+        print(f"Generating video with Aurora ({args.model})...")
+        if args.image:
+            print(f"  Image: {args.image}")
+        print(f"  Prompt: {prompt}")
+        print(f"  Duration: {args.duration}s")
+        print(f"  Resolution: {args.resolution}")
+        if args.aspect_ratio:
+            print(f"  Aspect ratio: {args.aspect_ratio}")
+        print()
+        
+        result = client.generate_video(
+            prompt=prompt,
+            image_path=args.image,
+            model=args.model,
+            duration=args.duration,
+            resolution=args.resolution,
+            aspect_ratio=args.aspect_ratio,
+            wait=not args.no_wait,
+            poll_interval=args.poll_interval,
+            max_wait=args.max_wait,
+        )
+        
+        # Save video if completed and output path specified
+        if result["status"] == "done" and result["video_url"] and args.output:
+            output_path = self.project_root / args.output
+            client.download_video(result["video_url"], str(output_path))
+            result["local_path"] = str(output_path)
+        
+        # Log to experiment log if successful
+        if result["status"] in ("done", "dry_run"):
+            self.log_experiment({
+                "tool": "aurora",
+                "model": args.model,
+                "prompt": prompt,
+                "image": args.image if args.image else None,
+                "duration": args.duration,
+                "resolution": args.resolution,
+                "aspect_ratio": args.aspect_ratio,
+                "request_id": result.get("request_id"),
+                "video_url": result.get("video_url"),
+                "local_path": result.get("local_path"),
+                "dry_run": dry_run,
+            })
+        
+        # Print summary
+        print()
+        print(client.session_report())
+        print()
+        
+        if result["status"] == "done":
+            print(f"✓ Video ready: {result['video_url']}")
+            if args.output:
+                print(f"✓ Saved locally: {result.get('local_path')}")
+        elif result["status"] == "dry_run":
+            print("✓ Dry run complete - no API calls made")
+        elif result["status"] == "timeout":
+            print(f"⚠ Video generation timed out")
+            print(f"  Check status later: aurora-video --status {result['request_id']}")
+        else:
+            print(f"✗ Generation failed: {result['status']}")
+    
+    def log_experiment(self, data: dict):
+        """Log an experiment entry to data/experiment_log.jsonl"""
+        log_file = self.project_root / "data" / "experiment_log.jsonl"
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        entry = {
+            "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "id": data.get("id", str(uuid.uuid4())[:8]),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            **data,
+        }
+        
+        with open(log_file, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+        
+        print(f"Logged to experiment_log.jsonl: {entry['id']}")
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -711,6 +810,20 @@ def main():
     leo_parser.add_argument("--prefix", help="Output filename prefix (default: leonardo)")
     leo_parser.add_argument("--no-wait", action="store_true", help="Don't wait for generation to complete")
 
+    # Aurora video
+    aurora_parser = subparsers.add_parser("aurora-video", help="Generate video with xAI Aurora / Grok Imagine Video")
+    aurora_parser.add_argument("--prompt", help="Text prompt describing desired motion/action")
+    aurora_parser.add_argument("--image", help="Path to starting image for image-to-video")
+    aurora_parser.add_argument("--model", default="grok-imagine-video-1.5", help="Model name (default: grok-imagine-video-1.5)")
+    aurora_parser.add_argument("--duration", type=int, default=8, help="Video duration in seconds (1-15, default: 8)")
+    aurora_parser.add_argument("--resolution", default="720p", choices=["480p", "720p", "1080p"], help="Output resolution (default: 720p)")
+    aurora_parser.add_argument("--aspect-ratio", choices=["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3"], help="Aspect ratio (optional)")
+    aurora_parser.add_argument("--output", help="Local output path (e.g. output/aurora/flo_scene_01.mp4)")
+    aurora_parser.add_argument("--no-wait", action="store_true", help="Submit request and return immediately without waiting")
+    aurora_parser.add_argument("--poll-interval", type=int, default=5, help="Seconds between status polls (default: 5)")
+    aurora_parser.add_argument("--max-wait", type=int, default=300, help="Maximum seconds to wait for completion (default: 300)")
+    aurora_parser.add_argument("--dry-run", action="store_true", help="Validate inputs but don't make API calls")
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
@@ -724,6 +837,7 @@ def main():
         "setup-pod": mc.cmd_setup_pod,
         "status": mc.cmd_status,
         "download": mc.cmd_download,
+        "aurora-video": mc.cmd_aurora_video,
     }
     commands[args.command](args)
 
