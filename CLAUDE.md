@@ -97,10 +97,9 @@ Do NOT use text-to-speech. Use speech-to-speech voice replacement (ElevenLabs). 
 <!-- BEGIN scaffold:hygiene -->
 ## Locked Hygiene Contract
 
-This project participates in the portfolio-wide locked hygiene contract
-installed historically via scaffolding; hygiene guidance now lives in agent-runtime-config.
+This project participates in the portfolio-wide locked hygiene contract.
+Hygiene guidance now lives in agent-runtime-config; the contract is still enforced by user-scope
 hooks in `~/.claude/` and by `pt` CLI commands in project-tracker. **Treat this block as the portfolio hygiene contract.** Markers are author-owned (not auto-rewritten). Prefer updates guided by agent-runtime-config docs; add project-specific notes outside the markers.
-outside the markers.
 
 ### What the contract requires
 
