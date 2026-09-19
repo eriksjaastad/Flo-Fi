@@ -98,9 +98,9 @@ Do NOT use text-to-speech. Use speech-to-speech voice replacement (ElevenLabs). 
 ## Locked Hygiene Contract
 
 This project participates in the portfolio-wide locked hygiene contract
-installed by `scaffold install-hygiene`. The contract is enforced by user-scope
+installed by agent-runtime-config hygiene install (scaffold CLI retired). The contract is enforced by user-scope
 hooks in `~/.claude/` and by `pt` CLI commands in project-tracker. **Do not edit
-this block by hand** — `scaffold sync` rewrites it. Add project-specific notes
+this block by hand** — `agent-runtime-config hygiene sync (retired scaffold CLI)` rewrites it. Add project-specific notes
 outside the markers.
 
 ### What the contract requires
@@ -149,5 +149,5 @@ outside the markers.
 | Open a handoff                  | `pt handoff create <card-pk> --branch <b> …`  |
 | List open handoffs              | `pt handoff list`                             |
 | Resolve a handoff               | `pt handoff resolve <id>`                     |
-| Refresh this block portfolio-wide | `scaffold sync --apply` (from project-scaffolding) |
+| Refresh this block portfolio-wide | agent-runtime-config for hygiene (agent-runtime-config hygiene sync (retired scaffold CLI) CLI retired) (from project-scaffolding) |
 <!-- END scaffold:hygiene -->
