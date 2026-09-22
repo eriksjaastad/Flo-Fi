@@ -47,3 +47,22 @@ Need to track every generation with full parameters for reproducibility and trai
 | No logging | Loses reproducibility — can't recreate or audit generations |
 
 Simple, auditable, reproducible. Any generation can be replayed from its log entry. Trade-off: no indexing or querying without loading the file. Acceptable at current generation volume.
+
+---
+
+## Blender Character Quality Is Judged by Likeness
+**Accepted 2026-09-22**
+
+The first original Blender portrait was rejected as flat, doll-like, and unlike
+Flo beyond hair color and clothing. A valid `.blend`, rendered turntable, and
+large object count did not satisfy the character request.
+
+For character recreation, establish facial volume, proportions, and expression
+against the canonical reference in neutral views before finishing hair,
+clothing, and presentation. Reconsider the modeling method when iterations
+preserve the same defect. Technical validity and user acceptance remain separate
+from the agent's visual assessment. Record rejection in the experiment log.
+
+The existing headless production constraint remains in force. A missing MCP
+connection does not prevent using Blender's Python API. Implementation and
+review guidance live in [docs/BLENDER_WORKFLOW.md](docs/BLENDER_WORKFLOW.md).

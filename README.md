@@ -74,4 +74,8 @@ cd <path-to-flo-fi-clone> && source .venv/bin/activate && simpletuner train
 
 ## Reference
 
+For Blender character work, use the [Blender workflow](docs/BLENDER_WORKFLOW.md)
+for headless operation, reference comparison, visual review, and lessons from
+the rejected portrait study.
+
 Run `pt info -p flo-fi` for models, APIs, seeds, and infrastructure details.
