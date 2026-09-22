@@ -67,6 +67,15 @@ Every step in the pipeline must be 100% agentic. No human interaction with creat
 - All ComfyUI usage must be via API (mission_control.py)
 - When evaluating new tools, first question: "Can an agent run this without a GUI?"
 
+## Blender character work
+
+When creating, editing, or evaluating Blender character assets, read
+[docs/BLENDER_WORKFLOW.md](docs/BLENDER_WORKFLOW.md). Establish Flo's facial
+likeness in neutral head views before finishing hair, clothing, or presentation.
+Use the available headless `bpy` route when MCP is absent. The September 22,
+2026 portrait was rejected; do not use it as an approved baseline. Keep technical
+file checks, visual quality, and user acceptance distinct in reports and logs.
+
 ## LoRA Training (deferred)
 
 LoRA training is on hold — Midjourney is the primary generator per PROGRESS.md. v1 and v2 both failed (see `data/experiment_log.jsonl`); v3 is deferred until we have ~100 diverse frames. When resuming, use the `/lora-training` skill — do not wing it.
