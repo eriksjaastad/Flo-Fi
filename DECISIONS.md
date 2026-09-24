@@ -61,4 +61,23 @@ Simple, auditable, reproducible. Any generation can be replayed from its log ent
 | Let RunPod setup copy every checkpoint from R2 | Reintroduces Mac-mini-only models into cloud workers |
 | Track binaries in git or Git LFS | Not needed for the current local-only pipeline and adds repository weight |
 
-Run RealCartoon-Pony or Juggernaut ComfyUI work from `eriks-mac-mini.local`. Cloud/pod flows must use pod-safe checkpoints only.
+Run RealCartoon-Pony or Juggernaut ComfyUI work from the Mac mini. Cloud/pod flows must use pod-safe checkpoints only.
+
+---
+
+## Blender Character Quality Is Judged by Likeness
+**Accepted 2026-09-22**
+
+The first original Blender portrait was rejected as flat, doll-like, and unlike
+Flo beyond hair color and clothing. A valid `.blend`, rendered turntable, and
+large object count did not satisfy the character request.
+
+For character recreation, establish facial volume, proportions, and expression
+against the canonical reference in neutral views before finishing hair,
+clothing, and presentation. Reconsider the modeling method when iterations
+preserve the same defect. Technical validity and user acceptance remain separate
+from the agent's visual assessment. Record rejection in the experiment log.
+
+The existing headless production constraint remains in force. A missing MCP
+connection does not prevent using Blender's Python API. Implementation and
+review guidance live in [docs/BLENDER_WORKFLOW.md](docs/BLENDER_WORKFLOW.md).
