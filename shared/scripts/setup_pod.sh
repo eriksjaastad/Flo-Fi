@@ -54,12 +54,21 @@ MAC_MINI_ONLY_CHECKPOINTS=(
 RCLONE_EXCLUDES=()
 for checkpoint in "${MAC_MINI_ONLY_CHECKPOINTS[@]}"; do
     RCLONE_EXCLUDES+=(--exclude "$checkpoint")
+    local_copy="/workspace/ComfyUI/models/checkpoints/$checkpoint"
+    if [ -f "$local_copy" ]; then
+        echo "  Removing Mac-mini-only checkpoint left by an earlier pod setup: $checkpoint"
+        rm -- "$local_copy"
+    fi
 done
 
 # Download checkpoint if not present
-if [ ! -f "/workspace/ComfyUI/models/checkpoints/noobaiXLVpredv10_v10.safetensors" ]; then
+if [ ! -f "/workspace/ComfyUI/models/checkpoints/NoobAI-XL-Vpred-v1.0.safetensors" ]; then
     echo "  Downloading pod-safe checkpoints from R2..."
     rclone copy "$R2_REMOTE/models/checkpoints/" /workspace/ComfyUI/models/checkpoints/ --progress "${RCLONE_EXCLUDES[@]}"
+    if [ ! -f "/workspace/ComfyUI/models/checkpoints/NoobAI-XL-Vpred-v1.0.safetensors" ]; then
+        echo "Error: NoobAI-XL checkpoint is missing after R2 download" >&2
+        exit 1
+    fi
 else
     echo "  NoobAI-XL checkpoint already present"
 fi

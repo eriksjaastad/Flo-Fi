@@ -82,16 +82,13 @@ MAC_MINI_ONLY_CHECKPOINTS = {
     "realcartoonPony_v3.safetensors",
     "Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors",
 }
-RUNPOD_CHECKPOINT = "noobaiXLVpredv10_v10.safetensors"
+RUNPOD_CHECKPOINT = "NoobAI-XL-Vpred-v1.0.safetensors"
 
 
 def is_mac_mini_comfyui_host(host):
-    """Return whether a ComfyUI host points at the Mac mini."""
+    """Return whether local ComfyUI is running on the Mac mini."""
     normalized = (host or "").lower().rstrip(".")
-    if normalized in {"127.0.0.1", "localhost", "::1"}:
-        return "mac-mini" in socket.gethostname().lower()
-    configured_host = os.environ.get("FLO_MAC_MINI_HOST", "").lower().rstrip(".")
-    return bool(configured_host and normalized == configured_host)
+    return normalized in {"127.0.0.1", "localhost", "::1"} and "mac-mini" in socket.gethostname().lower()
 
 # Scene presets — each has clothing, hair, setting, and lighting
 SCENES = {
@@ -367,8 +364,7 @@ class MissionControl:
         if checkpoint in MAC_MINI_ONLY_CHECKPOINTS and not is_mac_mini_comfyui_host(host):
             print(
                 f"Error: {checkpoint} is Mac mini only. "
-                "Run this command from the Mac mini, or set FLO_MAC_MINI_HOST "
-                "and pass --host with that hostname."
+                "SSH to the Mac mini and run this command against local ComfyUI."
             )
             raise SystemExit(1)
 
