@@ -2,13 +2,18 @@
 
 ## 1. Starting ComfyUI
 
+Set `FLO_MAC_MINI_HOST` to the Mac mini SSH hostname before connecting.
+
 ```bash
+ssh "$FLO_MAC_MINI_HOST"
+# From the flo-fi clone root on the Mac mini:
 ./shared/scripts/start_comfyui.sh
 ```
 
 - Runs on `http://127.0.0.1:8188`
 - Uses `--force-fp16` for Apple Silicon performance
 - Blocks the terminal — run in a background tab or use `&`
+- RealCartoon-Pony V3 and Juggernaut-XL checkpoint binaries live on the Mac mini only.
 
 Verify it's up:
 
@@ -146,7 +151,7 @@ curl -s http://127.0.0.1:8188/queue 2>/dev/null || echo "ComfyUI is down"
 
 See `docs/STYLE_GUIDE.md` for full details. Quick version:
 
-- **Model:** Juggernaut-XL v9
+- **Model:** RealCartoon-Pony V3
 - **Sampler:** DPM++ 2M Karras
 - **CFG:** 5.0-5.5
 - **Steps:** 30

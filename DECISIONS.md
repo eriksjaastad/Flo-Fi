@@ -50,6 +50,21 @@ Simple, auditable, reproducible. Any generation can be replayed from its log ent
 
 ---
 
+## RealCartoon/Juggernaut Checkpoints Stay Mac Mini Only
+**Accepted 2026-05-10**
+
+`realcartoonPony_v3.safetensors` and `Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors` are large local checkpoint binaries and should live only on the Mac mini under `tools/ComfyUI/models/checkpoints/`.
+
+| Alternative | Why rejected |
+|-------------|-------------|
+| Keep copies on the MacBook | Duplicates ~13GB of ignored local model state and makes the laptop look like an active ComfyUI host |
+| Let RunPod setup copy every checkpoint from R2 | Reintroduces Mac-mini-only models into cloud workers |
+| Track binaries in git or Git LFS | Not needed for the current local-only pipeline and adds repository weight |
+
+Run RealCartoon-Pony or Juggernaut ComfyUI work from the Mac mini. Cloud/pod flows must use pod-safe checkpoints only.
+
+---
+
 ## Blender Character Quality Is Judged by Likeness
 **Accepted 2026-09-22**
 

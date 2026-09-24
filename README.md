@@ -6,7 +6,11 @@ AI-generated 3D character brand for social media. Fully agentic pipeline — ima
 
 ## Quick Start
 
+Set `FLO_MAC_MINI_HOST` to your Mac mini SSH hostname before connecting.
+
 ```bash
+ssh "$FLO_MAC_MINI_HOST"
+# From the flo-fi clone root on the Mac mini:
 ./shared/scripts/start_comfyui.sh                              # ComfyUI at localhost:8188
 ./shared/scripts/mission_control.py generate-local --scene desert-sunset --seed 66603
 ./shared/scripts/mission_control.py generate-local --list-scenes  # 7 scene presets
@@ -26,7 +30,7 @@ shared/scripts/
   mission_control.py       # Generation CLI (--scene, --prompt, --lora, --model, etc.)
   start_comfyui.sh         # ComfyUI launcher
 tools/ComfyUI/
-  models/checkpoints/      # RealCartoon-Pony V3, Juggernaut-XL v9
+  models/checkpoints/      # Mac mini only: RealCartoon-Pony V3, Juggernaut-XL v9
   models/loras/            # flo_character_v1.safetensors (custom trained)
   training/flo/            # Curated training images (mj_, leo_, comfy_ prefixes)
   input/                   # Reference images
@@ -68,9 +72,12 @@ Edit the prompt in the green CLIP nodes, change the seed, hit **Queue Prompt**.
 source .venv/bin/activate
 
 # LoRA training (runs on Mac Mini, from repo root)
-ssh eriks-mac-mini.local
-cd <path-to-flo-fi-clone> && source .venv/bin/activate && simpletuner train
+ssh "$FLO_MAC_MINI_HOST"
+# From the flo-fi clone root on the Mac mini:
+source .venv/bin/activate && simpletuner train
 ```
+
+Checkpoint binaries for RealCartoon-Pony V3 and Juggernaut-XL v9 are kept on the Mac mini only. Do not copy them to the MacBook, RunPod, R2, or repo-tracked paths.
 
 ## Reference
 
