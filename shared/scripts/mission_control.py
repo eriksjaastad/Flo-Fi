@@ -14,6 +14,7 @@ USAGE:
 
 import argparse
 import json
+import os
 import socket
 import subprocess
 import sys
@@ -86,10 +87,11 @@ RUNPOD_CHECKPOINT = "noobaiXLVpredv10_v10.safetensors"
 
 def is_mac_mini_comfyui_host(host):
     """Return whether a ComfyUI host points at the Mac mini."""
-    normalized = (host or "").lower()
+    normalized = (host or "").lower().rstrip(".")
     if normalized in {"127.0.0.1", "localhost", "::1"}:
         return "mac-mini" in socket.gethostname().lower()
-    return "mac-mini" in normalized
+    configured_host = os.environ.get("FLO_MAC_MINI_HOST", "").lower().rstrip(".")
+    return bool(configured_host and normalized == configured_host)
 
 # Scene presets — each has clothing, hair, setting, and lighting
 SCENES = {
@@ -365,10 +367,10 @@ class MissionControl:
         if checkpoint in MAC_MINI_ONLY_CHECKPOINTS and not is_mac_mini_comfyui_host(host):
             print(
                 f"Error: {checkpoint} is Mac mini only. "
-                "Run this command from eriks-mac-mini.local, or pass --host eriks-mac-mini.local "
-                "to target a Mac mini ComfyUI server."
+                "Run this command from the Mac mini, or set FLO_MAC_MINI_HOST "
+                "and pass --host with that hostname."
             )
-            return
+            raise SystemExit(1)
 
         # DreamShaper Turbo uses different settings
         if "DreamShaper" in checkpoint and "Turbo" in checkpoint:
@@ -576,6 +578,196 @@ class MissionControl:
         output_dir = self.project_root / "output" / job_id
         self.download_from_r2(f"{RESULTS_PATH}/{job_id}/", output_dir)
 
+    def cmd_generate_leonardo(self, args):
+        """Generate images using Leonardo AI (Nano Banana family)"""
+        sys.path.insert(0, str(self.project_root / "shared"))
+        from leonardo import LeonardoClient
+
+        # Check for API key
+        api_key = os.environ.get("LEONARDO_API_KEY")
+        if not api_key:
+            print("ERROR: LEONARDO_API_KEY not set.")
+            print("Run via: doppler run -- ./shared/scripts/mission_control.py generate-leonardo ...")
+            sys.exit(1)
+
+        client = LeonardoClient(api_key=api_key)
+
+        # Build parameters (argparse ensures --prompt is present)
+        model = args.model or "nano-banana-pro"
+        width = args.width or 1024
+        height = args.height or 1024
+        quantity = args.count or 1
+        reference_images = args.reference or []
+        reference_strength = args.ref_strength or "MID"
+        prompt_enhance = "ON" if args.enhance else "OFF"
+        seed = args.seed
+        wait = not args.no_wait
+        output_dir = self.project_root / "output" / "leonardo"
+
+        print(f"Leonardo Generation")
+        print(f"  Model: {model}")
+        print(f"  Prompt: {args.prompt}")
+        print(f"  Size: {width}x{height}")
+        print(f"  Quantity: {quantity}")
+        if reference_images:
+            print(f"  References: {len(reference_images)} image(s) @ {reference_strength} strength")
+        print()
+
+        result = client.generate(
+            prompt=args.prompt,
+            model=model,
+            width=width,
+            height=height,
+            quantity=quantity,
+            reference_images=reference_images if reference_images else None,
+            reference_strength=reference_strength,
+            prompt_enhance=prompt_enhance,
+            seed=seed,
+            wait=wait,
+        )
+
+        # Download if completed
+        if result["status"] == "COMPLETE" and result["images"]:
+            prefix = args.prefix or "leonardo"
+            saved = client.download_images(result["images"], str(output_dir), prefix=prefix)
+            print()
+            print(client.cost_report())
+            print()
+            print(f"Images saved to {output_dir}")
+
+            # Log to experiment_log.jsonl
+            # Generate descriptive id from prompt + model
+            prompt_slug = args.prompt[:30].lower().replace(" ", "_").replace(",", "")
+            log_id = f"leonardo_{model.replace('-', '_')}_{prompt_slug}"
+            log_entry = {
+                "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                "id": log_id,
+                "tool": "leonardo",
+                "model": model,
+                "prompt": args.prompt,
+                "generation_id": result["generation_id"],
+                "cost": result["cost"],
+                "quantity": quantity,
+                "status": result["status"],
+                "output_files": [Path(p).name for p in saved],
+                "settings": {
+                    "width": width,
+                    "height": height,
+                    "reference_strength": reference_strength,
+                    "prompt_enhance": prompt_enhance,
+                    "seed": seed,
+                },
+            }
+            log_file = self.project_root / "data" / "experiment_log.jsonl"
+            with open(log_file, "a") as f:
+                f.write(json.dumps(log_entry) + "\n")
+            print(f"Logged to {log_file.relative_to(self.project_root)}")
+        else:
+            print(f"Generation status: {result['status']}")
+            print(f"Cost: ${result['cost']:.4f}")
+            if not wait:
+                print(f"Generation ID: {result['generation_id']}")
+                print("   Poll manually or re-run with --wait")
+
+    def cmd_aurora_video(self, args):
+        """Generate video using xAI Aurora / Grok Imagine Video"""
+        sys.path.insert(0, str(Path(__file__).parent.parent))
+        from aurora import AuroraClient
+        
+        # Initialize client with dry-run mode if requested
+        dry_run = getattr(args, 'dry_run', False)
+        
+        try:
+            client = AuroraClient(dry_run=dry_run)
+        except SystemExit:
+            return
+        
+        # Validate inputs
+        if not args.prompt and not args.image:
+            print("Error: Must provide either --prompt or --image (or both)")
+            return
+        
+        prompt = args.prompt or "Generate video from this image"
+        
+        # Generate video
+        print(f"Generating video with Aurora ({args.model})...")
+        if args.image:
+            print(f"  Image: {args.image}")
+        print(f"  Prompt: {prompt}")
+        print(f"  Duration: {args.duration}s")
+        print(f"  Resolution: {args.resolution}")
+        if args.aspect_ratio:
+            print(f"  Aspect ratio: {args.aspect_ratio}")
+        print()
+        
+        result = client.generate_video(
+            prompt=prompt,
+            image_path=args.image,
+            model=args.model,
+            duration=args.duration,
+            resolution=args.resolution,
+            aspect_ratio=args.aspect_ratio,
+            wait=not args.no_wait,
+            poll_interval=args.poll_interval,
+            max_wait=args.max_wait,
+        )
+        
+        # Save video if completed and output path specified
+        if result["status"] == "done" and result["video_url"] and args.output:
+            output_path = self.project_root / args.output
+            client.download_video(result["video_url"], str(output_path))
+            result["local_path"] = str(output_path)
+        
+        # Log to experiment log if successful
+        if result["status"] in ("done", "dry_run"):
+            self.log_experiment({
+                "tool": "aurora",
+                "model": args.model,
+                "prompt": prompt,
+                "image": args.image if args.image else None,
+                "duration": args.duration,
+                "resolution": args.resolution,
+                "aspect_ratio": args.aspect_ratio,
+                "request_id": result.get("request_id"),
+                "video_url": result.get("video_url"),
+                "local_path": result.get("local_path"),
+                "dry_run": dry_run,
+            })
+        
+        # Print summary
+        print()
+        print(client.session_report())
+        print()
+        
+        if result["status"] == "done":
+            print(f"✓ Video ready: {result['video_url']}")
+            if args.output:
+                print(f"✓ Saved locally: {result.get('local_path')}")
+        elif result["status"] == "dry_run":
+            print("✓ Dry run complete - no API calls made")
+        elif result["status"] == "timeout":
+            print(f"⚠ Video generation timed out")
+            print(f"  Check status later: aurora-video --status {result['request_id']}")
+        else:
+            print(f"✗ Generation failed: {result['status']}")
+    
+    def log_experiment(self, data: dict):
+        """Log an experiment entry to data/experiment_log.jsonl"""
+        log_file = self.project_root / "data" / "experiment_log.jsonl"
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        entry = {
+            "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "id": data.get("id", str(uuid.uuid4())[:8]),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            **data,
+        }
+        
+        with open(log_file, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+        
+        print(f"Logged to experiment_log.jsonl: {entry['id']}")
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -629,6 +821,34 @@ def main():
     dl_parser.add_argument("--job", required=True, help="Job ID")
     dl_parser.add_argument("--force", action="store_true", help="Download even if not completed")
 
+    # Generate Leonardo
+    leo_parser = subparsers.add_parser("generate-leonardo", help="Generate images via Leonardo AI (Nano Banana)")
+    leo_parser.add_argument("--prompt", required=True, help="Text prompt for image generation")
+    leo_parser.add_argument("--model", choices=["nano-banana", "nano-banana-pro", "nano-banana-2"], help="Leonardo model (default: nano-banana-pro)")
+    leo_parser.add_argument("--width", type=int, help="Image width (default: 1024)")
+    leo_parser.add_argument("--height", type=int, help="Image height (default: 1024)")
+    leo_parser.add_argument("--count", type=int, help="Number of images (default: 1)")
+    leo_parser.add_argument("--reference", action="append", help="Reference image path (can be specified multiple times)")
+    leo_parser.add_argument("--ref-strength", choices=["LOW", "MID", "HIGH"], help="Reference strength (default: MID)")
+    leo_parser.add_argument("--enhance", action="store_true", help="Enable prompt enhancement")
+    leo_parser.add_argument("--seed", type=int, help="Seed for reproducibility")
+    leo_parser.add_argument("--prefix", help="Output filename prefix (default: leonardo)")
+    leo_parser.add_argument("--no-wait", action="store_true", help="Don't wait for generation to complete")
+
+    # Aurora video
+    aurora_parser = subparsers.add_parser("aurora-video", help="Generate video with xAI Aurora / Grok Imagine Video")
+    aurora_parser.add_argument("--prompt", help="Text prompt describing desired motion/action")
+    aurora_parser.add_argument("--image", help="Path to starting image for image-to-video")
+    aurora_parser.add_argument("--model", default="grok-imagine-video-1.5", help="Model name (default: grok-imagine-video-1.5)")
+    aurora_parser.add_argument("--duration", type=int, default=8, help="Video duration in seconds (1-15, default: 8)")
+    aurora_parser.add_argument("--resolution", default="720p", choices=["480p", "720p", "1080p"], help="Output resolution (default: 720p)")
+    aurora_parser.add_argument("--aspect-ratio", choices=["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3"], help="Aspect ratio (optional)")
+    aurora_parser.add_argument("--output", help="Local output path (e.g. output/aurora/flo_scene_01.mp4)")
+    aurora_parser.add_argument("--no-wait", action="store_true", help="Submit request and return immediately without waiting")
+    aurora_parser.add_argument("--poll-interval", type=int, default=5, help="Seconds between status polls (default: 5)")
+    aurora_parser.add_argument("--max-wait", type=int, default=300, help="Maximum seconds to wait for completion (default: 300)")
+    aurora_parser.add_argument("--dry-run", action="store_true", help="Validate inputs but don't make API calls")
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
@@ -638,9 +858,11 @@ def main():
     commands = {
         "generate": mc.cmd_generate,
         "generate-local": mc.cmd_generate_local,
+        "generate-leonardo": mc.cmd_generate_leonardo,
         "setup-pod": mc.cmd_setup_pod,
         "status": mc.cmd_status,
         "download": mc.cmd_download,
+        "aurora-video": mc.cmd_aurora_video,
     }
     commands[args.command](args)
 

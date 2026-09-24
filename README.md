@@ -6,9 +6,11 @@ AI-generated 3D character brand for social media. Fully agentic pipeline — ima
 
 ## Quick Start
 
+Set `FLO_MAC_MINI_HOST` to your Mac mini SSH hostname before connecting.
+
 ```bash
-ssh eriks-mac-mini.local
-cd /Users/eriksjaastad/projects/flo-fi
+ssh "$FLO_MAC_MINI_HOST"
+# From the flo-fi clone root on the Mac mini:
 ./shared/scripts/start_comfyui.sh                              # ComfyUI at localhost:8188
 ./shared/scripts/mission_control.py generate-local --scene desert-sunset --seed 66603
 ./shared/scripts/mission_control.py generate-local --list-scenes  # 7 scene presets
@@ -69,13 +71,18 @@ Edit the prompt in the green CLIP nodes, change the seed, hit **Queue Prompt**.
 # Python venv (SimpleTuner, training tools)
 source .venv/bin/activate
 
-# LoRA training (runs on Mac Mini)
-ssh eriks-mac-mini.local
-cd /Users/eriksjaastad/projects/flo-fi && source .venv/bin/activate && simpletuner train
+# LoRA training (runs on Mac Mini, from repo root)
+ssh "$FLO_MAC_MINI_HOST"
+# From the flo-fi clone root on the Mac mini:
+source .venv/bin/activate && simpletuner train
 ```
 
 Checkpoint binaries for RealCartoon-Pony V3 and Juggernaut-XL v9 are kept on the Mac mini only. Do not copy them to the MacBook, RunPod, R2, or repo-tracked paths.
 
 ## Reference
+
+For Blender character work, use the [Blender workflow](docs/BLENDER_WORKFLOW.md)
+for headless operation, reference comparison, visual review, and lessons from
+the rejected portrait study.
 
 Run `pt info -p flo-fi` for models, APIs, seeds, and infrastructure details.

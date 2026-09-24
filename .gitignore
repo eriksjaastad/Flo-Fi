@@ -10,6 +10,7 @@ v*_desert_sunset_*.png
 
 # Ephemeral session state
 PROGRESS.md
+/.claude/
 
 # Python
 __pycache__/

@@ -2,9 +2,11 @@
 
 ## 1. Starting ComfyUI
 
+Set `FLO_MAC_MINI_HOST` to the Mac mini SSH hostname before connecting.
+
 ```bash
-ssh eriks-mac-mini.local
-cd /Users/eriksjaastad/projects/flo-fi
+ssh "$FLO_MAC_MINI_HOST"
+# From the flo-fi clone root on the Mac mini:
 ./shared/scripts/start_comfyui.sh
 ```
 
